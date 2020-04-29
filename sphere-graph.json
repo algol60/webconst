@@ -7,15 +7,15 @@
       "z": 0.0,
       "icon": "Miscellaneous.True",
       "background_icon": "Background.Round Circle",
+      "nradius": 1.0,
       "color": [
         0.0,
         0.5019608,
         0.0,
         1.0
       ],
-      "nradius": 1.0,
-      "fg_icon_index": 2,
-      "bg_icon_index": 6
+      "fg_icon_index": 3,
+      "bg_icon_index": 5
     },
     "1": {
       "Label": "Vertex #1<Unknown>",
@@ -24,15 +24,15 @@
       "z": 0.0,
       "icon": "Miscellaneous.False",
       "background_icon": "Background.Round Circle",
+      "nradius": 1.0,
       "color": [
         0.0,
         0.0,
         1.0,
         1.0
       ],
-      "nradius": 1.0,
       "fg_icon_index": 1,
-      "bg_icon_index": 6
+      "bg_icon_index": 5
     },
     "2": {
       "Label": "Vertex #2<Unknown>",
@@ -41,15 +41,15 @@
       "z": 0.0,
       "icon": "Internet.Amazon",
       "background_icon": "Background.Round Circle",
+      "nradius": 1.0,
       "color": [
         1.0,
         0.0,
         0.0,
         1.0
       ],
-      "nradius": 1.0,
       "fg_icon_index": 0,
-      "bg_icon_index": 6
+      "bg_icon_index": 5
     },
     "3": {
       "Label": "Vertex #3<Unknown>",
@@ -58,15 +58,15 @@
       "z": 0.0,
       "icon": "Flag.Australia",
       "background_icon": "Background.Round Circle",
+      "nradius": 1.0,
       "color": [
         1.0,
         1.0,
         0.0,
         1.0
       ],
-      "nradius": 1.0,
-      "fg_icon_index": 3,
-      "bg_icon_index": 6
+      "fg_icon_index": 4,
+      "bg_icon_index": 5
     },
     "4": {
       "Label": "Vertex #4<Unknown>",
@@ -75,15 +75,15 @@
       "z": -3.0333612,
       "icon": "Internet.Drive",
       "background_icon": "Background.Round Square",
+      "nradius": 1.0,
       "color": [
         0.5019608,
         0.5019608,
         0.5019608,
         1.0
       ],
-      "nradius": 1.0,
-      "fg_icon_index": 4,
-      "bg_icon_index": 5
+      "fg_icon_index": 6,
+      "bg_icon_index": 2
     }
   },
   "transaction": [
@@ -126,10 +126,33 @@
   "icon": {
     "Internet.Amazon": 0,
     "Miscellaneous.False": 1,
-    "Miscellaneous.True": 2,
-    "Flag.Australia": 3,
-    "Internet.Drive": 4,
-    "Background.Round Square": 5,
-    "Background.Round Circle": 6
-  }
+    "Background.Round Square": 2,
+    "Miscellaneous.True": 3,
+    "Flag.Australia": 4,
+    "Background.Round Circle": 5,
+    "Internet.Drive": 6
+  },
+  "camera": {
+    "eye": [
+      -0.211739,
+      0.051972,
+      14.483319
+    ],
+    "centre": [
+      -0.211739,
+      0.051972,
+      -1.516681
+    ],
+    "up": [
+      0.0,
+      1.0,
+      0.0
+    ]
+  },
+  "background_color": [
+    0.10588235400000001,
+    0.11764706,
+    0.14117648,
+    1.0
+  ]
 }

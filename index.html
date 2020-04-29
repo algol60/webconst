@@ -126,11 +126,15 @@ void main(void) {
 
       // scene and lights
       const scene = new BABYLON.Scene(engine);
-      scene.clearColor = new BABYLON.Color3(0x1b/255, 0x1e/255, 0x24/255);
+      // scene.clearColor = new BABYLON.Color3(0x1b/255, 0x1e/255, 0x24/255);
       const camera = new BABYLON.ArcRotateCamera('camera1', 0, 0, 0, new BABYLON.Vector3(0, 0, -0), scene);
       camera.wheelPrecision = 50;
-      camera.setPosition(new BABYLON.Vector3(0, 50, -300));
+      // camera.setPosition(new BABYLON.Vector3(0, 50, -300));
+
+
       camera.attachControl(canvas, true);
+      scene.activeCamera.panningSensibility = 50;
+
       const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 0), scene);
       light.intensity = 0.9;
       const pl = new BABYLON.PointLight('pl', new BABYLON.Vector3(0, 0, 0), scene);
@@ -141,11 +145,21 @@ void main(void) {
       fetch('sphere-graph.json')
       .then(response => response.json())
       .then(data => {
+        scene.clearColor = new BABYLON.Color4(...data.background_color);
+
+        data.camera.eye[2] = -data.camera.eye[2];
+        data.camera.centre[2] = -data.camera.centre[2];
+        data.camera.up[2] = -data.camera.up[2];
+        camera.position = new BABYLON.Vector3(...data.camera.eye);
+        camera.target = new BABYLON.Vector3(...data.camera.centre);
+        camera.upVector = new BABYLON.Vector3(...data.camera.up);
+
         const NVX = Object.keys(data.vertex).length;
         console.log('Vertices: %s', NVX);
         console.log('Atlas   : %s', data.sprite_atlas)
 
         const spriteMgr = new BABYLON.SpriteManager('vxMgr', data.sprite_atlas.name, NVX, 256, scene);
+        spriteMgr.isPickable = true;
         console.log('spriteMgr:', spriteMgr);
         console.log('texture: ', spriteMgr.texture.getBaseSize());
 
@@ -153,7 +167,7 @@ void main(void) {
         const h = data.sprite_atlas.height;
 
         for(let [i, vx] of Object.entries(data.vertex)) {
-          const sprite = new BABYLON.Sprite('sprite_'+i, spriteMgr);
+          const sprite = new BABYLON.Sprite('vx_'+i, spriteMgr);
           sprite.position.x = vx.x;
           sprite.position.y = vx.y;
           sprite.position.z = -vx.z;
@@ -166,6 +180,14 @@ void main(void) {
           //
           sprite.angle = Math.trunc(vx.bg_icon_index/w*67108864) + vx.bg_icon_index/h;
           sprite.color = new BABYLON.Color4(...vx.color);
+
+          // https://doc.babylonjs.com/how_to/how_to_use_actions
+          //
+          sprite.isPickable = true;
+          sprite.actionManager = new BABYLON.ActionManager(scene);
+          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event=>{console.log('Over '+event.source.name);}));
+          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event=>{console.log('Out '+event.source.name);}));
+          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event=>{console.log('Pick '+event.source.name);}));
         }
 
         const NTX = data.transaction.length;
