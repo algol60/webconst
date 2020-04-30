@@ -23,7 +23,8 @@
     </style>
 
     <script src="js/babylon-4.1.0.js"></script>
-  </head>
+    <script src="js/babylon.gui.min.js"></script>
+</head>
 
   <body>
 
@@ -118,8 +119,8 @@ void main(void) {
 }
     `;
 
-    const canvas = document.getElementById('renderCanvas'); // Get the canvas element
-    const engine = new BABYLON.Engine(canvas, true); // Generate the BABYLON 3D engine
+    const canvas = document.getElementById('renderCanvas');
+    const engine = new BABYLON.Engine(canvas, true);
     console.log('Maximum texture size:', engine.getCaps().maxTextureSize);
 
     const createScene = function () {
@@ -130,7 +131,6 @@ void main(void) {
       const camera = new BABYLON.ArcRotateCamera('camera1', 0, 0, 0, new BABYLON.Vector3(0, 0, -0), scene);
       camera.wheelPrecision = 50;
       // camera.setPosition(new BABYLON.Vector3(0, 50, -300));
-
 
       camera.attachControl(canvas, true);
       scene.activeCamera.panningSensibility = 50;
@@ -145,6 +145,35 @@ void main(void) {
       fetch('sphere-graph.json')
       .then(response => response.json())
       .then(data => {
+        const label = new BABYLON.GUI.Rectangle('node label');
+        const text1 = new BABYLON.GUI.TextBlock('node text');
+        var createLabel = function (mesh) {
+          label.background = 'black';
+          // label.height = '30px';
+          label.alpha = 0.85;
+          // label.width = '400px';
+          label.cornerRadius = 20;
+          label.thickness = 1;
+          label.linkOffsetY = 0;//90;
+          advancedTexture.addControl(label);
+          label.linkWithMesh(mesh);
+
+          // var text1 = new BABYLON.GUI.TextBlock;
+          text1.resizeToFit = true;
+          text1.text = mesh.name;
+          text1.color = "white";
+          text1.onLinesReadyObservable.add(function() {
+            console.log(`observe text1 lines wxh ${text1.width} ${text1.height}`);
+            const w = parseFloat(text1.width.slice(0, -2)); // Remove the trailing 'px';
+            const h = parseFloat(text1.height.slice(0, -2)); // Remove the trailing 'px';
+            console.log(`width=${w}`);
+            label.width = `${w+20}px`;
+            label.height = `${h+20}px`;
+            // label.isVisible = true;
+          });
+          label.addControl(text1)
+        };
+
         scene.clearColor = new BABYLON.Color4(...data.background_color);
 
         data.camera.eye[2] = -data.camera.eye[2];
@@ -163,11 +192,27 @@ void main(void) {
         console.log('spriteMgr:', spriteMgr);
         console.log('texture: ', spriteMgr.texture.getBaseSize());
 
+        // Labels are implemented by creating a single label, then setting
+        // the text and position when OnPointerOverTrigger happens.
+        // We can't attach a label to a SpriteManager, so create a dummy label mesh.
+        // Use the simplest mesh; we aren't going to see it.
+        //
+        const labelMesh = BABYLON.Mesh.CreateGround('labelMesh1', 0, 0, 0, scene);
+        labelMesh.setEnabled(false);
+        // labelMesh.position.x = 0;
+        // labelMesh.position.y = 0;
+        // labelMesh.color = BABYLON.Color4(0, 0, 0, 0);
+
+        const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
+        advancedTexture.useInvalidateRectOptimization = false;
+        createLabel(labelMesh);
+        label.isVisible = false;
+
         const w = data.sprite_atlas.width;
         const h = data.sprite_atlas.height;
 
         for(let [i, vx] of Object.entries(data.vertex)) {
-          const sprite = new BABYLON.Sprite('vx_'+i, spriteMgr);
+          const sprite = new BABYLON.Sprite(i, spriteMgr);
           sprite.position.x = vx.x;
           sprite.position.y = vx.y;
           sprite.position.z = -vx.z;
@@ -185,8 +230,21 @@ void main(void) {
           //
           sprite.isPickable = true;
           sprite.actionManager = new BABYLON.ActionManager(scene);
-          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event=>{console.log('Over '+event.source.name);}));
-          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event=>{console.log('Out '+event.source.name);}));
+          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event=>{
+            console.log('Over '+event.source.name);
+            // text1.text = event.source.name;
+            text1.text = (`${event.source.name} ` + data.vertex[event.source.name].Label);
+            labelMesh.position.x = event.source.position.x;
+            labelMesh.position.y = event.source.position.y;
+            labelMesh.position.z = event.source.position.z;
+            console.log(`wxh ${text1.width} ${text1.height}`);
+            label.isVisible = true;
+            }));
+          sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event=>{
+            console.log('Out '+event.source.name);
+            text1.text = '.';
+            label.isVisible = false;
+            }));
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event=>{console.log('Pick '+event.source.name);}));
         }
 
@@ -204,13 +262,13 @@ void main(void) {
         });
 
         const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', {lines: lines, colors:lineColors, useVertexAlpha:false}, scene);
-      })
-      .catch(error => {console.log('Error:', error);});
+      });
+      //.catch(error => {console.log('Error:', error);});
 
       return scene;
     };
 
-    const scene = createScene(); //Call the createScene function
+    const scene = createScene();
 
     // Register a render loop to repeatedly render the scene
     engine.runRenderLoop(function () {
