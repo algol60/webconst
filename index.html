@@ -146,7 +146,12 @@ void main(void) {
       .then(response => response.json())
       .then(data => {
         const label = new BABYLON.GUI.Rectangle('node label');
+        label.isPointerBlocker = false;
+        // label.adaptWidthToChildren = true;
+        // label.adaptHeightToChildren = true;
         const text1 = new BABYLON.GUI.TextBlock('node text');
+        text1.isPointerBlocker = false;
+        // text1.paddingTop = text1.paddingBottom = text1.paddingLeft = text1.paddingRight = '20px';
         var createLabel = function (mesh) {
           label.background = 'black';
           // label.height = '30px';
@@ -163,13 +168,20 @@ void main(void) {
           text1.text = mesh.name;
           text1.color = "white";
           text1.onLinesReadyObservable.add(function() {
-            console.log(`observe text1 lines wxh ${text1.width} ${text1.height}`);
+            // Manually set the rectangle size.
+            // We don't use label.adaptWidth/HeightToChildren() because
+            // we want padding around the text, and setting paddingTop/Bottom/Left/Right()
+            // doesn't seem to do the same as what we're doing here.
+            //
+            console.log(`observe "${text1.text}" lines wxh ${text1.width} ${text1.height}`);
             const w = parseFloat(text1.width.slice(0, -2)); // Remove the trailing 'px';
             const h = parseFloat(text1.height.slice(0, -2)); // Remove the trailing 'px';
             console.log(`width=${w}`);
             label.width = `${w+20}px`;
             label.height = `${h+20}px`;
-            // label.isVisible = true;
+            const hasText = text1.text!=='';
+            label.isVisible = hasText;
+            text1.isVisible = hasText;
           });
           label.addControl(text1)
         };
@@ -206,7 +218,9 @@ void main(void) {
         const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
         advancedTexture.useInvalidateRectOptimization = false;
         createLabel(labelMesh);
+        text1.text = '';
         label.isVisible = false;
+        text1.isVisible = false;
 
         const w = data.sprite_atlas.width;
         const h = data.sprite_atlas.height;
@@ -233,17 +247,19 @@ void main(void) {
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event=>{
             console.log('Over '+event.source.name);
             // text1.text = event.source.name;
-            text1.text = (`${event.source.name} ` + data.vertex[event.source.name].Label);
+            text1.text = data.vertex[event.source.name].Label;
             labelMesh.position.x = event.source.position.x;
             labelMesh.position.y = event.source.position.y;
             labelMesh.position.z = event.source.position.z;
             console.log(`wxh ${text1.width} ${text1.height}`);
             label.isVisible = true;
+            text1.isVisible = true;
             }));
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event=>{
             console.log('Out '+event.source.name);
-            text1.text = '.';
+            text1.text = '';
             label.isVisible = false;
+            text1.isVisible = false;
             }));
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event=>{console.log('Pick '+event.source.name);}));
         }
@@ -261,7 +277,7 @@ void main(void) {
           lineColors.push([color, color]);
         });
 
-        const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', {lines: lines, colors:lineColors, useVertexAlpha:false}, scene);
+        const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', {lines: lines, colors:lineColors, useVertexAlpha:false, width:10}, scene);
       });
       //.catch(error => {console.log('Error:', error);});
 
@@ -269,6 +285,9 @@ void main(void) {
     };
 
     const scene = createScene();
+
+    // scene.registerBeforeRender(function() {
+    // })
 
     // Register a render loop to repeatedly render the scene
     engine.runRenderLoop(function () {
