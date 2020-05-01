@@ -222,8 +222,6 @@ void main(void) {
           }, scene);
           blazeMesh.alwaysSelectAsActiveMesh = true;
           blazeMesh.isVisible = false;
-          // blazeMesh.rotation.x = 3*Math.PI/4;
-          // blazeMesh.rotation.y = 3*Math.PI/4;
 
           let colorData = new Float32Array(4 * (nBlazes+1));
           for(let ix=0; ix<nBlazes; ix++) {
@@ -241,7 +239,7 @@ void main(void) {
           blazeMesh.material.emissiveColor = BABYLON.Color3.White();
 
           const toRadians = angle => angle * (Math.PI / 180);
-          const offset = Math.sqrt(2);
+          const offset = Math.sqrt(2+SIZE); // offset by height of cylinder + size of node
           for(let ix=0; ix<nBlazes; ix++) {
               const instance = blazeMesh.createInstance('blaze' + ix);
               const zangle = toRadians(vxs[ix].blaze.angle)
