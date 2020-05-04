@@ -103,10 +103,10 @@ void main(void) {
   vec4 color = texture2D(diffuseSampler, vUV);
   if(true) // (alphaTest)
   {
-    if (color.a<0.95)
+    if (color.a<0.1)
     {
       vec4 bgColor = texture2D(diffuseSampler,bgUV);
-      if(bgColor.a<0.95) discard;
+      if(bgColor.a<0.1) discard;
       // bgColor.a = 1.0;
       color = bgColor * vColor;
     }
@@ -216,6 +216,8 @@ void main(void) {
 
           // const blazeMesh = BABYLON.MeshBuilder.CreateBox("blaze", {size: 1}, scene);
           const blazeMesh = BABYLON.MeshBuilder.CreateCylinder('blazes', {
+            height: 1.25,
+            diameterBottom: 0.5,
             diameterTop:0.0,
             tessellation:4
           }, scene);
@@ -238,7 +240,7 @@ void main(void) {
           blazeMesh.material.emissiveColor = BABYLON.Color3.White();
 
           const toRadians = angle => angle * (Math.PI / 180);
-          const offset = Math.sqrt(2+SIZE); // offset by height of cylinder + size of node
+          const offset = 1.25/2+Math.sqrt(SIZE/2); // offset by half height of cylinder + size of node
           for(let ix=0; ix<nBlazes; ix++) {
               const instance = blazeMesh.createInstance('blaze' + ix);
               const zangle = toRadians(vxs[ix].blaze.angle)
@@ -265,14 +267,17 @@ void main(void) {
 
         // Labels are implemented by creating a single label, then setting
         // the text and position when OnPointerOverTrigger happens.
-        // We can't attach a label to a SpriteManager, so create a dummy label mesh.
-        // Use the simplest mesh; we aren't going to see it.
+        // // We can't attach a label to a SpriteManager, so create a dummy label mesh.
         //
-        const labelMesh = BABYLON.Mesh.CreateGround('labelMesh1', 0, 0, 0, scene);
-        labelMesh.setEnabled(false);
-        // labelMesh.position.x = 0;
-        // labelMesh.position.y = 0;
-        // labelMesh.color = BABYLON.Color4(0, 0, 0, 0);
+        // // Use the simplest mesh; we aren't going to see it.
+        // //
+        // const labelMesh = BABYLON.Mesh.CreateGround('labelMesh1', 0, 0, 0, scene);
+        // labelMesh.setEnabled(false);
+        // // labelMesh.position.x = 0;
+        // // labelMesh.position.y = 0;
+        // // labelMesh.color = BABYLON.Color4(0, 0, 0, 0);
+
+        const labelMesh = new BABYLON.TransformNode();
 
         const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
         advancedTexture.useInvalidateRectOptimization = false;
@@ -304,17 +309,17 @@ void main(void) {
           sprite.isPickable = true;
           sprite.actionManager = new BABYLON.ActionManager(scene);
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event=>{
-            console.log('Over '+event.source.name);
+            // console.log('Over '+event.source.name);
             text1.text = data.vertex[event.source.name].Label;
             labelMesh.position.x = event.source.position.x;
             labelMesh.position.y = event.source.position.y;
             labelMesh.position.z = event.source.position.z;
-            console.log(`wxh ${text1.width} ${text1.height}`);
+            // console.log(`wxh ${text1.width} ${text1.height}`);
             label.isVisible = true;
             text1.isVisible = true;
             }));
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event=>{
-            console.log('Out '+event.source.name);
+            // console.log('Out '+event.source.name);
             text1.text = '';
             label.isVisible = false;
             text1.isVisible = false;
@@ -324,20 +329,24 @@ void main(void) {
 
         // Lines.
         //
-        const NTX = data.transaction.length;
-        const lines = [];
-        const lineColors = [];
-        data.transaction.forEach(tx => {
-          const s = data.vertex[tx['sid_']];
-          const d = data.vertex[tx['did_']];
-          const line = [new BABYLON.Vector3(s.x, s.y, -s.z), new BABYLON.Vector3(d.x, d.y, -d.z)];
-          lines.push(line);
+        const createLines = function() {
+          // const NTX = data.transaction.length;
+          const lines = [];
+          const lineColors = [];
+          data.transaction.forEach(tx => {
+            const s = data.vertex[tx['sid_']];
+            const d = data.vertex[tx['did_']];
+            const line = [new BABYLON.Vector3(s.x, s.y, -s.z), new BABYLON.Vector3(d.x, d.y, -d.z)];
+            lines.push(line);
 
-          const color = new BABYLON.Color4(...tx.color);
-          lineColors.push([color, color]);
-        });
+            const color = new BABYLON.Color4(...tx.color);
+            lineColors.push([color, color]);
+          });
 
-        const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', {lines: lines, colors:lineColors, useVertexAlpha:false, width:10}, scene);
+          const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', {lines: lines, colors:lineColors, useVertexAlpha:false, width:10}, scene);
+        }
+
+        createLines();
 
         // Direction indicators.
         //
@@ -380,7 +389,7 @@ void main(void) {
 
           const vxs = data.vertex;
           const toRadians = angle => angle * (Math.PI / 180);
-          const offset = 1.25;//Math.sqrt(SIZE); // offset by height of cylinder + size of node
+          const offset = 0.5/2+Math.sqrt(SIZE/2); // offset by half height of cylinder + size of node
           for(let ix=0; ix<nArrows; ix++) {
               const instance = arrowMesh.createInstance('arrow' + ix);
 
