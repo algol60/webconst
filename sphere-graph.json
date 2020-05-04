@@ -7,7 +7,7 @@
       "z": 0.0,
       "icon": "Miscellaneous.True",
       "background_icon": "Background.Round Circle",
-      "nradius": 1.0,
+      "nradius": 0.25,
       "blaze": {
         "angle": 315.0,
         "color": [
