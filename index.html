@@ -176,17 +176,15 @@ void main(void) {
           // var text1 = new BABYLON.GUI.TextBlock;
           text1.resizeToFit = true;
           text1.text = mesh.name;
-          text1.color = "white";
+          text1.color = 'white';
           text1.onLinesReadyObservable.add(function() {
             // Manually set the rectangle size.
             // We don't use label.adaptWidth/HeightToChildren() because
             // we want padding around the text, and setting paddingTop/Bottom/Left/Right()
             // doesn't seem to do the same as what we're doing here.
             //
-            console.log(`observe "${text1.text}" lines wxh ${text1.width} ${text1.height}`);
             const w = parseFloat(text1.width.slice(0, -2)); // Remove the trailing 'px';
             const h = parseFloat(text1.height.slice(0, -2)); // Remove the trailing 'px';
-            console.log(`width=${w}`);
             label.width = `${w+20}px`;
             label.height = `${h+20}px`;
             const hasText = text1.text!=='';
@@ -204,6 +202,7 @@ void main(void) {
         camera.position = new BABYLON.Vector3(...data.camera.eye);
         camera.target = new BABYLON.Vector3(...data.camera.centre);
         camera.upVector = new BABYLON.Vector3(...data.camera.up);
+        // camera.alpha = 0.002;
 
         const NVX = Object.keys(data.vertex).length;
         console.log('Vertices: %s', NVX);
@@ -235,7 +234,7 @@ void main(void) {
           blazeMesh.setVerticesBuffer(buffer);
 
           blazeMesh.material = new BABYLON.StandardMaterial('blaze_mat');
-          blazeMesh.material.disableLighting = true;
+          // blazeMesh.material.disableLighting = true;
           blazeMesh.material.emissiveColor = BABYLON.Color3.White();
 
           const toRadians = angle => angle * (Math.PI / 180);
@@ -323,12 +322,14 @@ void main(void) {
           sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event=>{console.log('Pick '+event.source.name);}));
         }
 
+        // Lines.
+        //
         const NTX = data.transaction.length;
         const lines = [];
         const lineColors = [];
         data.transaction.forEach(tx => {
-          const s = data.vertex[tx['source.[id]']];
-          const d = data.vertex[tx['destination.[id]']];
+          const s = data.vertex[tx['sid_']];
+          const d = data.vertex[tx['did_']];
           const line = [new BABYLON.Vector3(s.x, s.y, -s.z), new BABYLON.Vector3(d.x, d.y, -d.z)];
           lines.push(line);
 
@@ -337,6 +338,74 @@ void main(void) {
         });
 
         const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', {lines: lines, colors:lineColors, useVertexAlpha:false, width:10}, scene);
+
+        // Direction indicators.
+        //
+        const createDirections = function(transactions) {
+          const arrows = []
+          transactions.forEach(tx => {
+            const dirs = tx.directions;
+            if(dirs.includes('>')) {
+              arrows.push({sid_:tx.sid_, did_:tx.did_, color: tx.color})
+            }
+            if(dirs.includes('<')) {
+              arrows.push({sid_:tx.did_, did_:tx.sid_, color: tx.color})
+            }
+          });
+
+          const nArrows = arrows.length;
+          const arrowMesh = BABYLON.MeshBuilder.CreateCylinder('arrowheads', {
+            height: 0.5,
+            diameterBottom: 0.25,
+            diameterTop:0.0,
+            tessellation:3
+          }, scene);
+          arrowMesh.alwaysSelectAsActiveMesh = true;
+          arrowMesh.isVisible = false;
+
+          let colorData = new Float32Array(4 * (nArrows+1));
+          for(let ix=0; ix<nArrows; ix++) {
+              colorData[ix * 4 + 0] = arrows[ix].color[0];
+              colorData[ix * 4 + 1] = arrows[ix].color[1];
+              colorData[ix * 4 + 2] = arrows[ix].color[2];
+              colorData[ix * 4 + 3] = arrows[ix].color[3];
+          }
+
+          const buffer = new BABYLON.VertexBuffer(engine, colorData, BABYLON.VertexBuffer.ColorKind, false, false, 4, true);
+          arrowMesh.setVerticesBuffer(buffer);
+
+          arrowMesh.material = new BABYLON.StandardMaterial('arrow_mat');
+          // blazeMesh.material.disableLighting = true;
+          arrowMesh.material.emissiveColor = BABYLON.Color3.White();
+
+          const vxs = data.vertex;
+          const toRadians = angle => angle * (Math.PI / 180);
+          const offset = 1.25;//Math.sqrt(SIZE); // offset by height of cylinder + size of node
+          for(let ix=0; ix<nArrows; ix++) {
+              const instance = arrowMesh.createInstance('arrow' + ix);
+
+              // Figure out the offset of the arrowhead from the node.
+              //
+              const sv = arrows[ix].sid_;
+              const dv = arrows[ix].did_;
+              const hypot = Math.hypot(vxs[sv].x-vxs[dv].x, vxs[sv].y-vxs[dv].y, vxs[sv].z-vxs[dv].z);
+              const ox = offset*(vxs[sv].x-vxs[dv].x)/hypot;
+              const oy = offset*(vxs[sv].y-vxs[dv].y)/hypot;
+              const oz = offset*(vxs[sv].z-vxs[dv].z)/hypot;
+
+              instance.position.x = vxs[dv].x+ox;
+              instance.position.y = vxs[dv].y+oy;
+              instance.position.z = -vxs[dv].z-oz;
+
+              // Make the arrowhead look at the destination node.
+              // The pitch and roll make the cylinder line up in the correct direction.
+              //
+              instance.lookAt(new BABYLON.Vector3(vxs[dv].x, vxs[dv].y, -vxs[dv].z), 0, -Math.PI/2, Math.PI);
+              instance.alwaysSelectAsActiveMesh = true;
+          }
+        };
+
+        createDirections(data.transaction);
       });
       //.catch(error => {console.log('Error:', error);});
 

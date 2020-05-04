@@ -23,8 +23,8 @@
         0.0,
         1.0
       ],
-      "fg_icon_index": 4,
-      "bg_icon_index": 1
+      "fg_icon_index": 3,
+      "bg_icon_index": 4
     },
     "1": {
       "Label": "A big red cross",
@@ -49,8 +49,8 @@
         1.0,
         1.0
       ],
-      "fg_icon_index": 5,
-      "bg_icon_index": 1
+      "fg_icon_index": 1,
+      "bg_icon_index": 4
     },
     "2": {
       "Label": "Amazon (\u0645\u0631\u062d\u0628\u0627 \u062c\u0648\u062c\u0644)",
@@ -67,8 +67,8 @@
         0.0,
         1.0
       ],
-      "fg_icon_index": 3,
-      "bg_icon_index": 1
+      "fg_icon_index": 6,
+      "bg_icon_index": 4
     },
     "3": {
       "Label": "Australia",
@@ -93,8 +93,8 @@
         0.0,
         1.0
       ],
-      "fg_icon_index": 6,
-      "bg_icon_index": 1
+      "fg_icon_index": 5,
+      "bg_icon_index": 4
     },
     "4": {
       "Label": "Google Drive (\u4f60\u597d\uff0c\u4e16\u754c)",
@@ -117,34 +117,48 @@
   },
   "transaction": [
     {
-      "source.[id]": "3",
-      "destination.[id]": "2",
+      "sid_": "3",
+      "did_": "2",
       "color": [
         1.0,
         0.0,
         0.0,
         1.0
-      ]
+      ],
+      "directions": "><"
     },
     {
-      "source.[id]": "2",
-      "destination.[id]": "0",
+      "sid_": "2",
+      "did_": "0",
       "color": [
         0.0,
         0.5019608,
         0.0,
         1.0
-      ]
+      ],
+      "directions": ">"
     },
     {
-      "source.[id]": "0",
-      "destination.[id]": "1",
+      "sid_": "1",
+      "did_": "4",
       "color": [
-        0.0,
+        1.0,
         0.0,
         1.0,
         1.0
-      ]
+      ],
+      "directions": ">"
+    },
+    {
+      "sid_": "0",
+      "did_": "1",
+      "color": [
+        0.9254901999999999,
+        0.9411765,
+        0.94509804,
+        1.0
+      ],
+      "directions": ">"
     }
   ],
   "sprite_atlas": {
@@ -154,23 +168,23 @@
   },
   "icon": {
     "Background.Round Square": 0,
-    "Background.Round Circle": 1,
+    "Miscellaneous.False": 1,
     "Internet.Drive": 2,
-    "Internet.Amazon": 3,
-    "Miscellaneous.True": 4,
-    "Miscellaneous.False": 5,
-    "Flag.Australia": 6
+    "Miscellaneous.True": 3,
+    "Background.Round Circle": 4,
+    "Flag.Australia": 5,
+    "Internet.Amazon": 6
   },
   "camera": {
     "eye": [
-      -0.124736,
-      -0.043206,
-      16.000055
+      -0.211739,
+      0.051972,
+      14.483319
     ],
     "centre": [
-      -0.124736,
-      -0.043206,
-      5.6e-05
+      -0.211739,
+      0.051972,
+      -1.516681
     ],
     "up": [
       0.0,
