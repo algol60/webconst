@@ -1,13 +1,7 @@
 {
   "vertex": {
     "0": {
-      "Label": "A big green tick",
-      "x": -3.524239,
-      "y": -3.2605276,
-      "z": 0.0,
-      "icon": "Miscellaneous.True",
       "background_icon": "Background.Round Circle",
-      "nradius": 0.25,
       "blaze": {
         "angle": 315.0,
         "color": [
@@ -17,23 +11,23 @@
           1.0
         ]
       },
-      "color": [
+      "icon": "Miscellaneous.True",
+      "nradius": 0.75,
+      "x": -3.524239,
+      "y": -3.2605276,
+      "z": 0.0,
+      "color_": [
         0.0,
         0.5019608,
         0.0,
         1.0
       ],
-      "fg_icon_index": 3,
-      "bg_icon_index": 4
+      "label_": "Background.Round Circle",
+      "fg_icon_index": 5,
+      "bg_icon_index": 2
     },
     "1": {
-      "Label": "A big red cross",
-      "x": 3.100761,
-      "y": -3.2605276,
-      "z": 0.0,
-      "icon": "Miscellaneous.False",
       "background_icon": "Background.Round Circle",
-      "nradius": 1.0,
       "blaze": {
         "angle": 45.0,
         "color": [
@@ -43,41 +37,41 @@
           1.0
         ]
       },
-      "color": [
+      "icon": "Miscellaneous.False",
+      "nradius": 1.0,
+      "x": 3.100761,
+      "y": -3.2605276,
+      "z": 0.0,
+      "color_": [
         0.0,
         0.0,
         1.0,
         1.0
       ],
-      "fg_icon_index": 1,
-      "bg_icon_index": 4
+      "label_": "Background.Round Circle",
+      "fg_icon_index": 3,
+      "bg_icon_index": 2
     },
     "2": {
-      "Label": "Amazon (\u0645\u0631\u062d\u0628\u0627 \u062c\u0648\u062c\u0644)",
+      "background_icon": "Background.Round Circle",
+      "blaze": null,
+      "icon": "Internet.Amazon",
+      "nradius": 1.0,
       "x": -3.524239,
       "y": 3.3644724,
       "z": 0.0,
-      "icon": "Internet.Amazon",
-      "background_icon": "Background.Round Circle",
-      "nradius": 1.0,
-      "blaze": null,
-      "color": [
+      "color_": [
         1.0,
         0.0,
         0.0,
         1.0
       ],
-      "fg_icon_index": 6,
-      "bg_icon_index": 4
+      "label_": "Background.Round Circle",
+      "fg_icon_index": 1,
+      "bg_icon_index": 2
     },
     "3": {
-      "Label": "Australia",
-      "x": 3.100761,
-      "y": 3.3644724,
-      "z": 0.0,
-      "icon": "Flag.Australia",
-      "background_icon": "Background.Round Circle",
-      "nradius": 1.0,
+      "background_icon": "Background.Flat Square",
       "blaze": {
         "angle": 180.0,
         "color": [
@@ -87,32 +81,38 @@
           1.0
         ]
       },
-      "color": [
+      "icon": "Flag.Australia",
+      "nradius": 1.0,
+      "x": 3.100761,
+      "y": 3.3644724,
+      "z": 0.0,
+      "color_": [
         1.0,
         1.0,
         0.0,
         1.0
       ],
-      "fg_icon_index": 5,
-      "bg_icon_index": 4
+      "label_": "Background.Flat Square",
+      "fg_icon_index": 7,
+      "bg_icon_index": 0
     },
     "4": {
-      "Label": "Google Drive (\u4f60\u597d\uff0c\u4e16\u754c)",
+      "background_icon": "Background.Round Square",
+      "blaze": null,
+      "icon": "Internet.Drive",
+      "nradius": 1.0,
       "x": -0.39254996000000003,
       "y": 0.18762782,
       "z": -3.0333612,
-      "icon": "Internet.Drive",
-      "background_icon": "Background.Round Square",
-      "nradius": 1.0,
-      "blaze": null,
-      "color": [
+      "color_": [
         0.5019608,
         0.5019608,
         0.5019608,
         1.0
       ],
-      "fg_icon_index": 2,
-      "bg_icon_index": 0
+      "label_": "Background.Round Square",
+      "fg_icon_index": 6,
+      "bg_icon_index": 4
     }
   },
   "transaction": [
@@ -163,17 +163,18 @@
   ],
   "sprite_atlas": {
     "name": "sprite_atlas.png",
-    "width": 7,
+    "width": 8,
     "height": 1
   },
   "icon": {
-    "Background.Round Square": 0,
-    "Miscellaneous.False": 1,
-    "Internet.Drive": 2,
-    "Miscellaneous.True": 3,
-    "Background.Round Circle": 4,
-    "Flag.Australia": 5,
-    "Internet.Amazon": 6
+    "Background.Flat Square": 0,
+    "Internet.Amazon": 1,
+    "Background.Round Circle": 2,
+    "Miscellaneous.False": 3,
+    "Background.Round Square": 4,
+    "Miscellaneous.True": 5,
+    "Internet.Drive": 6,
+    "Flag.Australia": 7
   },
   "camera": {
     "eye": [
@@ -192,6 +193,7 @@
       0.0
     ]
   },
+  "label_color": "#de2446",
   "background_color": [
     0.10588235400000001,
     0.11764706,

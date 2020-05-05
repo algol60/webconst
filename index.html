@@ -126,12 +126,14 @@ void main(void) {
     const createScene = function () {
       const SIZE = 2.5;
 
-      // scene and lights
+      // Scene and lights.
+      //
       const scene = new BABYLON.Scene(engine);
-      // scene.clearColor = new BABYLON.Color3(0x1b/255, 0x1e/255, 0x24/255);
+
+      // Camera.
+      //
       const camera = new BABYLON.ArcRotateCamera('camera1', 0, 0, 0, new BABYLON.Vector3(0, 0, -0), scene);
       camera.wheelPrecision = 50;
-      // camera.setPosition(new BABYLON.Vector3(0, 50, -300));
 
       camera.attachControl(canvas, true);
       scene.activeCamera.panningSensibility = 50;
@@ -159,6 +161,7 @@ void main(void) {
         // label.adaptWidthToChildren = true;
         // label.adaptHeightToChildren = true;
         const text1 = new BABYLON.GUI.TextBlock('node text');
+        console.log(text1);
         text1.isPointerBlocker = false;
         // text1.paddingTop = text1.paddingBottom = text1.paddingLeft = text1.paddingRight = '20px';
 
@@ -176,7 +179,7 @@ void main(void) {
           // var text1 = new BABYLON.GUI.TextBlock;
           text1.resizeToFit = true;
           text1.text = mesh.name;
-          text1.color = 'white';
+          text1.color = data.label_color;
           text1.onLinesReadyObservable.add(function() {
             // Manually set the rectangle size.
             // We don't use label.adaptWidth/HeightToChildren() because
@@ -256,7 +259,7 @@ void main(void) {
               const offset = 1.25/2+v.nradius*Math.sqrt(SIZE/2); // offset by half height of cylinder + size of node
               instance.position.x = v.x+offset*Math.sin(zangle);
               instance.position.y = v.y+offset*Math.cos(zangle);
-              instance.position.z = v.z;
+              instance.position.z = -v.z;
               instance.alwaysSelectAsActiveMesh = true;
           }
         };
@@ -310,7 +313,7 @@ void main(void) {
             // 67108864 = 2**26.
             //
             sprite.angle = Math.trunc(vx.bg_icon_index/w*67108864) + vx.bg_icon_index/h;
-            sprite.color = new BABYLON.Color4(...vx.color);
+            sprite.color = new BABYLON.Color4(...vx.color_);
 
             // https://doc.babylonjs.com/how_to/how_to_use_actions
             //
@@ -318,21 +321,28 @@ void main(void) {
             sprite.actionManager = new BABYLON.ActionManager(scene);
             sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event=>{
               // console.log('Over '+event.source.name);
-              text1.text = data.vertex[event.source.name].Label;
+              text1.text = data.vertex[event.source.name].label_;
               labelMesh.position.x = event.source.position.x;
               labelMesh.position.y = event.source.position.y;
               labelMesh.position.z = event.source.position.z;
               // console.log(`wxh ${text1.width} ${text1.height}`);
               label.isVisible = true;
               text1.isVisible = true;
-              }));
+            }));
             sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event=>{
               // console.log('Out '+event.source.name);
               text1.text = '';
               label.isVisible = false;
               text1.isVisible = false;
-              }));
-            sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event=>{console.log('Pick '+event.source.name);}));
+            }));
+            sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event=>{
+              console.log('PickP '+event.source.name);
+            }));
+            sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnCenterPickTrigger, event=>{
+              const v = data.vertex[event.source.name];
+              console.log(`PickC`, v);
+              camera.target = new BABYLON.Vector3(v.x, v.y, v.z);
+            }));
           }
         };
 
@@ -450,8 +460,11 @@ void main(void) {
     };
 
     const scene = createScene();
+    console.log(scene.activeCamera);
 
     // scene.registerBeforeRender(function() {
+    //   scene.activeCamera.alpha += 0.01;
+    //   // scene.activeCamera.beta += 0.01;
     // })
 
     // Register a render loop to repeatedly render the scene
