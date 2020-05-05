@@ -16,13 +16,13 @@
       "x": -3.524239,
       "y": -3.2605276,
       "z": 0.0,
+      "label_": "A big green tick",
       "color_": [
         0.0,
         0.5019608,
         0.0,
         1.0
       ],
-      "label_": "Background.Round Circle",
       "fg_icon_index": 5,
       "bg_icon_index": 2
     },
@@ -42,13 +42,13 @@
       "x": 3.100761,
       "y": -3.2605276,
       "z": 0.0,
+      "label_": "A big red cross",
       "color_": [
         0.0,
         0.0,
         1.0,
         1.0
       ],
-      "label_": "Background.Round Circle",
       "fg_icon_index": 3,
       "bg_icon_index": 2
     },
@@ -60,13 +60,13 @@
       "x": -3.524239,
       "y": 3.3644724,
       "z": 0.0,
+      "label_": "Amazon (\u0645\u0631\u062d\u0628\u0627 \u062c\u0648\u062c\u0644)",
       "color_": [
         1.0,
         0.0,
         0.0,
         1.0
       ],
-      "label_": "Background.Round Circle",
       "fg_icon_index": 1,
       "bg_icon_index": 2
     },
@@ -86,13 +86,13 @@
       "x": 3.100761,
       "y": 3.3644724,
       "z": 0.0,
+      "label_": "Australia",
       "color_": [
         1.0,
         1.0,
         0.0,
         1.0
       ],
-      "label_": "Background.Flat Square",
       "fg_icon_index": 7,
       "bg_icon_index": 0
     },
@@ -104,13 +104,13 @@
       "x": -0.39254996000000003,
       "y": 0.18762782,
       "z": -3.0333612,
+      "label_": "Google Drive (\u4f60\u597d\uff0c\u4e16\u754c)",
       "color_": [
         0.5019608,
         0.5019608,
         0.5019608,
         1.0
       ],
-      "label_": "Background.Round Square",
       "fg_icon_index": 6,
       "bg_icon_index": 4
     }
@@ -193,7 +193,7 @@
       0.0
     ]
   },
-  "label_color": "#de2446",
+  "label_color": "#007fff",
   "background_color": [
     0.10588235400000001,
     0.11764706,
