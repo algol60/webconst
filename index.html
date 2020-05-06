@@ -31,7 +31,14 @@
     <script>
       'use strict';
 
-      fetch('sphere-graph.json')
+      const params = new URLSearchParams(document.location.search.substring(1));
+      let graphName = params.get('graph');
+      if(!graphName) {
+        graphName = 'graph-5.json'
+      }
+      console.log(`Graph file: ${graphName}`)
+
+      fetch(graphName)
         .then(response => response.json())
         .then(data => {
           createGraph(data);

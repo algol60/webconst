@@ -23,7 +23,7 @@
         0.0,
         1.0
       ],
-      "fg_icon_index": 5,
+      "fg_icon_index": 4,
       "bg_icon_index": 2
     },
     "1": {
@@ -67,7 +67,7 @@
         0.0,
         1.0
       ],
-      "fg_icon_index": 1,
+      "fg_icon_index": 7,
       "bg_icon_index": 2
     },
     "3": {
@@ -93,8 +93,8 @@
         0.0,
         1.0
       ],
-      "fg_icon_index": 7,
-      "bg_icon_index": 0
+      "fg_icon_index": 6,
+      "bg_icon_index": 1
     },
     "4": {
       "background_icon": "Background.Round Square",
@@ -111,8 +111,8 @@
         0.5019608,
         1.0
       ],
-      "fg_icon_index": 6,
-      "bg_icon_index": 4
+      "fg_icon_index": 0,
+      "bg_icon_index": 5
     }
   },
   "transaction": [
@@ -162,19 +162,19 @@
     }
   ],
   "sprite_atlas": {
-    "name": "sprite_atlas.png",
+    "name": "graph-5-atlas.png",
     "width": 8,
     "height": 1
   },
   "icon": {
-    "Background.Flat Square": 0,
-    "Internet.Amazon": 1,
+    "Internet.Drive": 0,
+    "Background.Flat Square": 1,
     "Background.Round Circle": 2,
     "Miscellaneous.False": 3,
-    "Background.Round Square": 4,
-    "Miscellaneous.True": 5,
-    "Internet.Drive": 6,
-    "Flag.Australia": 7
+    "Miscellaneous.True": 4,
+    "Background.Round Square": 5,
+    "Flag.Australia": 6,
+    "Internet.Amazon": 7
   },
   "camera": {
     "eye": [
