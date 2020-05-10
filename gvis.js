@@ -119,6 +119,11 @@ const createGraph = function(data) {
     // pl.specular = new BABYLON.Color3(0.5, 0.2, 0.2);
     pl.intensity = 0.75;
 
+    // Which attributes are used for the label and node color attributes?
+    //
+    const label_attr = data.label_attr;
+    const node_color_attr = data.node_color_attr;
+
     // Create a Rectangle containing a TextBlock to make a pretty node label.
     // Doing labels like Constellation is nasty and complicated.
     // Instead, we'll use BABYLON.GUI to create a single TextBlock and
@@ -273,7 +278,7 @@ const createGraph = function(data) {
         // 67108864 = 2**26.
         //
         sprite.angle = Math.trunc(vx.bg_icon_index / w * 67108864) + vx.bg_icon_index / h;
-        sprite.color = new BABYLON.Color4(...vx.color_);
+        sprite.color = new BABYLON.Color4(...vx[node_color_attr]);
 
         // https://doc.babylonjs.com/how_to/how_to_use_actions
         //
@@ -281,7 +286,8 @@ const createGraph = function(data) {
         sprite.actionManager = new BABYLON.ActionManager(scene);
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event => {
           // console.log('Over '+event.source.name);
-          text1.text = data.vertex[event.source.name].label_;
+          // text1.text = data.vertex[event.source.name].label_;
+          text1.text = data.vertex[event.source.name][label_attr];
           labelMesh.position.x = event.source.position.x;
           labelMesh.position.y = event.source.position.y;
           labelMesh.position.z = event.source.position.z;
