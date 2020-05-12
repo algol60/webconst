@@ -27,7 +27,7 @@
 
   <body>
     <canvas id="renderCanvas" touch-action="none"></canvas> //touch-action="none" for best results from PEP
-    <script src="gvis.js"></script>
+    <script src="graph_vis.js"></script>
     <script>
       'use strict';
 
@@ -38,10 +38,13 @@
       }
       console.log(`Graph file: ${graphName}`)
 
+      const nodeEvent = event => {
+        console.log('Node event:', event);
+      };
       fetch(graphName)
         .then(response => response.json())
         .then(data => {
-          createGraph(data);
+          createGraph(data, nodeEvent);
         }
       );
     </script>

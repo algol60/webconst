@@ -21,15 +21,15 @@
       "Label": "A big green tick",
       "Identifier": "Vertex #0",
       "Source": "Manually Created",
-      "FirstSeen": "",
-      "color": [
-        0.0,
-        0.5019608,
-        0.0,
+      "Cluster.ChineseWhispers": 1,
+      "Cluster.ChineseWhispers.Colour": [
+        0.9490196,
+        0.4745098,
+        0.4745098,
         1.0
       ],
-      "fg_icon_index": 1,
-      "bg_icon_index": 6
+      "fg_icon_index": 6,
+      "bg_icon_index": 3
     },
     "1": {
       "background_icon": "Background.Round Circle",
@@ -52,15 +52,15 @@
       "Label": "A big red cross",
       "Identifier": "Vertex #1",
       "Source": "Manually Created",
-      "FirstSeen": "",
-      "color": [
-        0.0,
-        0.0,
-        1.0,
+      "Cluster.ChineseWhispers": 1,
+      "Cluster.ChineseWhispers.Colour": [
+        0.9490196,
+        0.4745098,
+        0.4745098,
         1.0
       ],
-      "fg_icon_index": 2,
-      "bg_icon_index": 6
+      "fg_icon_index": 0,
+      "bg_icon_index": 3
     },
     "2": {
       "background_icon": "Background.Round Circle",
@@ -75,15 +75,15 @@
       "Label": "Amazon (\u0645\u0631\u062d\u0628\u0627 \u062c\u0648\u062c\u0644)",
       "Identifier": "Vertex #2",
       "Source": "Manually Created",
-      "FirstSeen": "2020-01-01 00:00:01+00:00",
-      "color": [
-        1.0,
-        0.0,
-        0.0,
+      "Cluster.ChineseWhispers": 2,
+      "Cluster.ChineseWhispers.Colour": [
+        0.4745098,
+        0.6117646999999999,
+        0.9490196,
         1.0
       ],
       "fg_icon_index": 7,
-      "bg_icon_index": 6
+      "bg_icon_index": 3
     },
     "3": {
       "background_icon": "Background.Flat Square",
@@ -106,15 +106,15 @@
       "Label": "Australia",
       "Identifier": "Vertex #3",
       "Source": "Manually Created",
-      "FirstSeen": "2020-01-02 00:00:02+00:00",
-      "color": [
-        1.0,
-        1.0,
-        0.0,
+      "Cluster.ChineseWhispers": 2,
+      "Cluster.ChineseWhispers.Colour": [
+        0.4745098,
+        0.6117646999999999,
+        0.9490196,
         1.0
       ],
-      "fg_icon_index": 3,
-      "bg_icon_index": 5
+      "fg_icon_index": 2,
+      "bg_icon_index": 4
     },
     "4": {
       "background_icon": "Background.Round Square",
@@ -129,15 +129,15 @@
       "Label": "Google Drive (\u4f60\u597d\uff0c\u4e16\u754c)",
       "Identifier": "Vertex #4",
       "Source": "Manually Created",
-      "FirstSeen": "",
-      "color": [
-        0.5019608,
-        0.5019608,
-        0.5019608,
+      "Cluster.ChineseWhispers": 1,
+      "Cluster.ChineseWhispers.Colour": [
+        0.9490196,
+        0.4745098,
+        0.4745098,
         1.0
       ],
-      "fg_icon_index": 4,
-      "bg_icon_index": 0
+      "fg_icon_index": 1,
+      "bg_icon_index": 5
     }
   },
   "transaction": [
@@ -145,9 +145,9 @@
       "sid_": "3",
       "did_": "2",
       "color": [
-        1.0,
-        0.0,
-        0.0,
+        0.4745098,
+        0.6117646999999999,
+        0.9490196,
         1.0
       ],
       "directions": "><"
@@ -156,9 +156,9 @@
       "sid_": "2",
       "did_": "0",
       "color": [
-        0.0,
-        0.5019608,
-        0.0,
+        0.2509804,
+        0.2509804,
+        0.2509804,
         1.0
       ],
       "directions": ">"
@@ -167,9 +167,9 @@
       "sid_": "1",
       "did_": "4",
       "color": [
-        1.0,
-        0.0,
-        1.0,
+        0.9490196,
+        0.4745098,
+        0.4745098,
         1.0
       ],
       "directions": ">"
@@ -178,9 +178,9 @@
       "sid_": "0",
       "did_": "1",
       "color": [
-        0.9254901999999999,
-        0.9411765,
-        0.94509804,
+        0.9490196,
+        0.4745098,
+        0.4745098,
         1.0
       ],
       "directions": ">"
@@ -192,13 +192,13 @@
     "height": 1
   },
   "icon": {
-    "Background.Round Square": 0,
-    "Miscellaneous.True": 1,
-    "Miscellaneous.False": 2,
-    "Flag.Australia": 3,
-    "Internet.Drive": 4,
-    "Background.Flat Square": 5,
-    "Background.Round Circle": 6,
+    "Miscellaneous.False": 0,
+    "Internet.Drive": 1,
+    "Flag.Australia": 2,
+    "Background.Round Circle": 3,
+    "Background.Flat Square": 4,
+    "Background.Round Square": 5,
+    "Miscellaneous.True": 6,
     "Internet.Amazon": 7
   },
   "vx_noted": [
@@ -225,7 +225,8 @@
   },
   "label_attr": "Label",
   "label_color": "#007fff",
-  "node_color_attr": "color",
+  "node_color_attr": "Cluster.ChineseWhispers.Colour",
+  "link_color_attr": "Cluster.ChineseWhispers.Colour",
   "background_color": [
     0.10588235400000001,
     0.11764706,
@@ -238,6 +239,7 @@
     "Label",
     "Identifier",
     "Source",
-    "FirstSeen"
+    "Cluster.ChineseWhispers",
+    "Cluster.ChineseWhispers.Colour"
   ]
 }

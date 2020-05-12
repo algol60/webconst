@@ -6,7 +6,7 @@
  *
  * @param {JSON} data A JSON document representing a Constellation graph.
  */
-const createGraph = function(data) {
+const createGraph = function(data, nodeEvent) {
   const node_spritesVertexShader = `
     attribute vec4 position;
     attribute vec4 options;
@@ -305,11 +305,12 @@ const createGraph = function(data) {
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event => {
           console.log('PickP ' + event.source.name);
+          nodeEvent(event.source.name);
         }));
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnCenterPickTrigger, event => {
           const v = data.vertex[event.source.name];
-          console.log(`PickC`, v);
+          console.log('PickC', v);
           camera.target = new BABYLON.Vector3(v.x, v.y, v.z);
         }));
       }
