@@ -100,6 +100,58 @@ const createGraph = function(data, nodeEvent) {
   const createScene = function () {
     const SIZE = 2.5;
 
+    class Highlighter {
+      static createHighlighter(name, diameter, scene) {
+        const mesh = BABYLON.MeshBuilder.CreateTorus('torus'+name, {diameter:diameter, thickness:1.0, tessellation:24}, scene);
+        mesh.rotate(BABYLON.Axis.X, Math.PI/2, BABYLON.Space.LOCAL);
+        mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
+
+        const texture = new BABYLON.StandardMaterial('texture'+name, scene);
+        // texture.emissiveTexture = new BABYLON.Texture('highlight-texture.png');
+        texture.diffuseTexture = new BABYLON.Texture('highlight-texture.png');
+        // texture.alpha = 0.9;
+        // mat.backFaceCulling = true;
+        mesh.material = texture;
+        return mesh;
+      };
+
+      constructor(scene) {
+        this.mesh = Highlighter.createHighlighter('highlight', SIZE*2, scene);
+        this.hide();
+      }
+
+      show(position, diameter, scene) {
+        diameter *= 2;
+        if(diameter!=this.mesh.diameter) {
+          this.mesh.dispose();
+          this.mesh = Highlighter.createHighlighter('highlight', diameter, scene);
+        }
+
+        const glow = new BABYLON.GlowLayer("glow", scene);//, {mainTextureSamples:4});
+        // glow.blurKernelSize = 32;
+        console.log('bks', glow.blurKernelSize);
+        glow.intensity = 0.5;
+        glow.addIncludedOnlyMesh(this.mesh);
+
+        this.mesh.position = position;
+        this.mesh.isVisible = true;
+      }
+
+      hide() {
+        this.mesh.isVisible = false;
+      }
+
+      spin() {
+        if(this.mesh.isVisible) {
+          this.mesh.rotate(BABYLON.Axis.Z, Math.PI/24, BABYLON.Space.WORLD);
+        }
+      }
+
+      dispose() {
+        this.mesh.dispose();
+      }
+    }
+
     // Scene and lights.
     //
     const scene = new BABYLON.Scene(engine);
@@ -113,11 +165,13 @@ const createGraph = function(data, nodeEvent) {
     scene.activeCamera.panningSensibility = 50;
 
     const light = new BABYLON.HemisphericLight('light1', new BABYLON.Vector3(1, 1, 0), scene);
-    light.intensity = 0.9;
-    const pl = new BABYLON.PointLight('pl', new BABYLON.Vector3(0, 0, 0), scene);
-    // pl.diffuse = new BABYLON.Color3(1, 1, 1);
-    // pl.specular = new BABYLON.Color3(0.5, 0.2, 0.2);
-    pl.intensity = 0.75;
+    light.groundColor = new BABYLON.Color3(.5, .5, .5);
+    light.intensity = 0.75;
+
+    // const pl = new BABYLON.PointLight('pl', new BABYLON.Vector3(0, 0, 0), scene);
+    // // pl.diffuse = new BABYLON.Color3(1, 1, 1);
+    // // pl.specular = new BABYLON.Color3(0.5, 0.2, 0.2);
+    // pl.intensity = 0.75;
 
     // Which attributes are used for the label and node color attributes?
     //
@@ -306,12 +360,14 @@ const createGraph = function(data, nodeEvent) {
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event => {
           console.log('PickP ' + event.source.name);
           nodeEvent(event.source.name);
+          const v = data.vertex[event.source.name];
+          highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
         }));
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnCenterPickTrigger, event => {
           const v = data.vertex[event.source.name];
           console.log('PickC', v);
-          camera.target = new BABYLON.Vector3(v.x, v.y, v.z);
+          camera.target = new BABYLON.Vector3(v.x, v.y, -v.z);
         }));
       }
     };
@@ -421,6 +477,13 @@ const createGraph = function(data, nodeEvent) {
     };
 
     createDirections(data.transaction);
+
+    const highlight = new Highlighter();
+    // highlight.show(new BABYLON.Vector3(0, 0, 0), 1.0, scene);
+
+    scene.registerBeforeRender(function() {
+      highlight.spin();
+    });
 
     return scene;
   }
