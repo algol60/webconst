@@ -6,7 +6,7 @@
  *
  * @param {JSON} data A JSON document representing a Constellation graph.
  */
-const createGraph = function(data, nodeEvent) {
+const createGraph = function(data, eventHandler) {
   const node_spritesVertexShader = `
     attribute vec4 position;
     attribute vec4 options;
@@ -97,6 +97,11 @@ const createGraph = function(data, nodeEvent) {
   const engine = new BABYLON.Engine(canvas, true);
   console.log('Maximum texture size:', engine.getCaps().maxTextureSize);
 
+  const resize = () =>  {
+    console.log('GRAPH RESIZE');
+    engine.resize();
+  };
+
   const createScene = function () {
     const SIZE = 2.5;
 
@@ -127,11 +132,9 @@ const createGraph = function(data, nodeEvent) {
           this.mesh = Highlighter.createHighlighter('highlight', diameter, scene);
         }
 
-        const glow = new BABYLON.GlowLayer("glow", scene);//, {mainTextureSamples:4});
-        // glow.blurKernelSize = 32;
-        console.log('bks', glow.blurKernelSize);
-        glow.intensity = 0.5;
-        glow.addIncludedOnlyMesh(this.mesh);
+        // const glow = new BABYLON.GlowLayer("glow", scene);//, {mainTextureSamples:4});
+        // glow.intensity = 0.5;
+        // glow.addIncludedOnlyMesh(this.mesh);
 
         this.mesh.position = position;
         this.mesh.isVisible = true;
@@ -155,6 +158,14 @@ const createGraph = function(data, nodeEvent) {
     // Scene and lights.
     //
     const scene = new BABYLON.Scene(engine);
+
+    const highlight = new Highlighter(scene);
+
+    const selectVxId = id => {
+      console.log(`select vx id ${id}`);
+      const v = data.vertex[id];
+      highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
+    };
 
     // Camera.
     //
@@ -228,12 +239,17 @@ const createGraph = function(data, nodeEvent) {
 
     scene.clearColor = new BABYLON.Color4(...data.background_color);
 
-    data.camera.eye[2] = -data.camera.eye[2];
-    data.camera.centre[2] = -data.camera.centre[2];
-    data.camera.up[2] = -data.camera.up[2];
-    camera.position = new BABYLON.Vector3(...data.camera.eye);
-    camera.target = new BABYLON.Vector3(...data.camera.centre);
-    camera.upVector = new BABYLON.Vector3(...data.camera.up);
+    const resetCamera = function() {
+      camera.position = new BABYLON.Vector3(...data.camera.eye);
+      camera.target = new BABYLON.Vector3(...data.camera.centre);
+      camera.upVector = new BABYLON.Vector3(...data.camera.up);
+      highlight.hide();
+    };
+
+  data.camera.eye[2] = -data.camera.eye[2];
+  data.camera.centre[2] = -data.camera.centre[2];
+  data.camera.up[2] = -data.camera.up[2];
+  resetCamera();
 
     const NVX = Object.keys(data.vertex).length;
     console.log('Vertices: %s', NVX);
@@ -359,9 +375,9 @@ const createGraph = function(data, nodeEvent) {
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event => {
           console.log('PickP ' + event.source.name);
-          nodeEvent(event.source.name);
-          const v = data.vertex[event.source.name];
-          highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
+          eventHandler('v', event.source.name);
+          // const v = data.vertex[event.source.name];
+          // highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
         }));
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnCenterPickTrigger, event => {
@@ -376,12 +392,12 @@ const createGraph = function(data, nodeEvent) {
 
     // Lines.
     //
-    const createLines = function () {
+    const createLines = function (transaction) {
       // const NTX = data.transaction.length;
       const vxs = data.vertex;
       const lines = [];
       const lineColors = [];
-      data.transaction.forEach(tx => {
+      transaction.forEach(tx => {
         const sv = vxs[tx['sid_']];
         const dv = vxs[tx['did_']];
         const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
@@ -406,7 +422,7 @@ const createGraph = function(data, nodeEvent) {
       const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', { lines: lines, colors: lineColors, useVertexAlpha: false, width: 10 }, scene);
     }
 
-    createLines();
+    createLines(data.transaction);
 
     // Direction indicators.
     //
@@ -478,14 +494,16 @@ const createGraph = function(data, nodeEvent) {
 
     createDirections(data.transaction);
 
-    const highlight = new Highlighter();
-    // highlight.show(new BABYLON.Vector3(0, 0, 0), 1.0, scene);
-
     scene.registerBeforeRender(function() {
       highlight.spin();
     });
 
-    return scene;
+    return {
+      scene: scene,
+      resetCamera, resetCamera,
+      resize: resize,
+      selectVxId: selectVxId
+    };
   }
   // );
   //.catch(error => {console.log('Error:', error);});
@@ -493,7 +511,7 @@ const createGraph = function(data, nodeEvent) {
   // scene.freezeActiveMeshes();
 
   const scene = createScene();
-  console.log(scene.activeCamera);
+  console.log(scene.scene.activeCamera);
 
   // scene.registerBeforeRender(function() {
   //   scene.activeCamera.alpha += 0.01;
@@ -502,11 +520,18 @@ const createGraph = function(data, nodeEvent) {
 
   // Register a render loop to repeatedly render the scene
   engine.runRenderLoop(function () {
-    scene.render();
+    scene.scene.render();
   });
 
   // Watch for browser/canvas resize events
   window.addEventListener('resize', function () {
+    console.log('window engine resize');
     engine.resize();
   });
+
+  return {
+    resetCamera: scene.resetCamera,
+    resize: resize,
+    selectVxId: scene.selectVxId
+  };
 }
