@@ -6,7 +6,7 @@
  *
  * @param {JSON} data A JSON document representing a Constellation graph.
  */
-const createGraph = function(data, eventHandler) {
+const createGraph = function(data, eventHandler, resourceDir='.') {
   const node_spritesVertexShader = `
     attribute vec4 position;
     attribute vec4 options;
@@ -112,8 +112,8 @@ const createGraph = function(data, eventHandler) {
         mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
 
         const texture = new BABYLON.StandardMaterial('texture'+name, scene);
-        // texture.emissiveTexture = new BABYLON.Texture('highlight-texture.png');
-        texture.diffuseTexture = new BABYLON.Texture('highlight-texture.png');
+        // texture.emissiveTexture = new BABYLON.Texture(`${resourceDir}/highlight-texture.png`);
+        texture.diffuseTexture = new BABYLON.Texture(`${resourceDir}/highlight-texture.png`);
         // texture.alpha = 0.9;
         // mat.backFaceCulling = true;
         mesh.material = texture;
@@ -246,10 +246,10 @@ const createGraph = function(data, eventHandler) {
       highlight.hide();
     };
 
-  data.camera.eye[2] = -data.camera.eye[2];
-  data.camera.centre[2] = -data.camera.centre[2];
-  data.camera.up[2] = -data.camera.up[2];
-  resetCamera();
+    data.camera.eye[2] = -data.camera.eye[2];
+    data.camera.centre[2] = -data.camera.centre[2];
+    data.camera.up[2] = -data.camera.up[2];
+    resetCamera();
 
     const NVX = Object.keys(data.vertex).length;
     console.log('Vertices: %s', NVX);
@@ -313,7 +313,7 @@ const createGraph = function(data, eventHandler) {
       // BABYLON.Effect.ShadersStore['spritesVertexShader'] = node_spritesVertexShader;
       // BABYLON.Effect.ShadersStore['spritesPixelShader']  = node_spritesPixelShader;
       BABYLON.Effect.RegisterShader('sprites', node_spritesPixelShader, node_spritesVertexShader);
-      const spriteMgr = new BABYLON.SpriteManager('vxMgr', data.sprite_atlas.name, NVX, 256, scene);
+      const spriteMgr = new BABYLON.SpriteManager('vxMgr', `${resourceDir}/${data.sprite_atlas.name}`, NVX, 256, scene);
       spriteMgr.fogEnabled = false;
       spriteMgr.isPickable = true;
       console.log('spriteMgr:', spriteMgr);
@@ -420,6 +420,23 @@ const createGraph = function(data, eventHandler) {
       });
 
       const liness = BABYLON.MeshBuilder.CreateLineSystem('liness', { lines: lines, colors: lineColors, useVertexAlpha: false, width: 10 }, scene);
+
+      liness.actionManager = new BABYLON.ActionManager(scene);
+      liness.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event => {
+        console.log('Line Over', event);
+        const pickResult = scene.pick(event.pointerX, event.pointerY);
+        // console.log('pick result', pickResult);
+        if(pickResult.hit) {
+          // The faceId is the position of the picked face's indices in the
+          // indices array. Because the indices array is in the same order as
+          // the transactions in the forEach() loop above, it's also an index
+          // into the transactions array.
+          //
+          console.log(`picked faceId ${pickResult.faceId} at ${pickResult.pickedPoint.x}, ${pickResult.pickedPoint.y},${pickResult.pickedPoint.z}`);
+          console.log(transaction[pickResult.faceId]);
+          // eventHandler('t', transaction[pickResult.faceId])
+        }
+      }));
     }
 
     createLines(data.transaction);
