@@ -1,11 +1,12 @@
 <!DOCTYPE html>
 <html>
 <head>
+  <!-- This is a standalone page that displays the BABYLONJS canvas. -->
     <meta http-equiv="Content-Type" content="text/html" charset="utf-8"/>
     <title>Standalone Webstellation</title>
     <link rel="shortcut icon" type="image/png" href="../constellation.png"/>
-    <script src="../babylon/babylon-4.1.0.js"></script>
-    <script src="../babylon/babylon.gui.min.js"></script>
+    <script src="../babylon/babylon.max-4.1.0.js"></script>
+    <script src="../babylon/babylon.gui.js"></script>
     <style>
         html, body {
             overflow: hidden;
@@ -42,7 +43,7 @@
           return;
         }
 
-        console.log('@@ Event:', event, id);
+        console.log('@@ UI event handler:', event, id);
         switch(event) {
           case 'g': // graph event
             switch(id) {

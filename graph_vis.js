@@ -117,6 +117,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         // texture.alpha = 0.9;
         // mat.backFaceCulling = true;
         mesh.material = texture;
+        mesh.material.alpha = 0.75;
         return mesh;
       };
 
@@ -189,53 +190,97 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     const label_attr = data.label_attr;
     const node_color_attr = data.node_color_attr;
 
-    // Create a Rectangle containing a TextBlock to make a pretty node label.
-    // Doing labels like Constellation is nasty and complicated.
-    // Instead, we'll use BABYLON.GUI to create a single TextBlock and
-    // make it visible when the cursor hovers over a node, resizing the
-    // Rectangle to fix the text as we go..
-    // To do this, we need to attach the Rectangle to a dummy mesh.
-    //
-    const label = new BABYLON.GUI.Rectangle('node label');
-    label.isPointerBlocker = false;
-    // label.adaptWidthToChildren = true;
-    // label.adaptHeightToChildren = true;
-    const text1 = new BABYLON.GUI.TextBlock('node text');
-    console.log(text1);
-    text1.isPointerBlocker = false;
-    // text1.paddingTop = text1.paddingBottom = text1.paddingLeft = text1.paddingRight = '20px';
+    /**
+     * Display a label using BABYLON.GUI.
+     *
+     * Doing labels like Constellation is nasty and complicated.
+     * Instead, we'll use BABYLON.GUI to create a single TextBlock and
+     * make it visible when the cursor hovers over something.
+     * We also use a Rectangle to make a nice border, and change its size
+     * to fit the text as we go.
+     * Create a Rectangle containing a TextBlock to make a pretty node label.
+     */
+    class TextDisplayer {
+      constructor() {
+        this.label = new BABYLON.GUI.Rectangle('label');
+        this.label.isPointerBlocker = false;
+        this.text = new BABYLON.GUI.TextBlock('text');
+        this.text.isPointerBlocker = false;
 
-    var createLabel = function (advancedTexture, mesh) {
-      label.background = 'black';
-      // label.height = '30px';
-      label.alpha = 0.85;
-      // label.width = '400px';
-      label.cornerRadius = 20;
-      label.thickness = 1;
-      label.linkOffsetY = 0;//90;
-      advancedTexture.addControl(label);
-      label.linkWithMesh(mesh);
-
-      // var text1 = new BABYLON.GUI.TextBlock;
-      text1.resizeToFit = true;
-      text1.text = mesh.name;
-      text1.color = data.label_color;
-      text1.onLinesReadyObservable.add(function () {
-        // Manually set the rectangle size.
-        // We don't use label.adaptWidth/HeightToChildren() because
-        // we want padding around the text, and setting paddingTop/Bottom/Left/Right()
-        // doesn't seem to do the same as what we're doing here.
+        // Create a dummy label mesh to attach the label to.
         //
-        const w = parseFloat(text1.width.slice(0, -2)); // Remove the trailing 'px';
-        const h = parseFloat(text1.height.slice(0, -2)); // Remove the trailing 'px';
-        label.width = `${w + 20}px`;
-        label.height = `${h + 20}px`;
-        const hasText = text1.text !== '';
-        label.isVisible = hasText;
-        text1.isVisible = hasText;
-      });
-      label.addControl(text1)
-    };
+        this.labelMesh = new BABYLON.TransformNode();
+
+        // BABYLON GUI root.
+        //
+        this.advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI('UI');
+        this.advancedTexture.useInvalidateRectOptimization = false;
+
+        this._createLabel(this.advancedTexture, this.labelMesh);
+
+        this.text.text = '';
+      }
+      _createLabel(advancedTexture, mesh) {
+        this.label.isVisible = false;
+        this.text.isVisible = false;
+        this.label.background = 'black';
+        this.label.alpha = 0.85;
+        this.label.cornerRadius = 20;
+        this.label.thickness = 1;
+        advancedTexture.addControl(this.label);
+        this.label.linkWithMesh(mesh);
+
+        this.text.resizeToFit = true;
+        this.text.text = mesh.name;
+        this.text.color = data.label_color;
+
+        // Constants for the callback closure.
+        //
+        const ll = this.label;
+        const tt = this.text;
+        this.text.onLinesReadyObservable.add(function () {
+          // Manually set the rectangle size.
+          // We don't use label.adaptWidth/HeightToChildren() because
+          // we want padding around the text, and setting paddingTop/Bottom/Left/Right()
+          // doesn't seem to do the same as what we're doing here.
+          //
+          const w = parseFloat(tt.width.slice(0, -2)); // Remove the trailing 'px';
+          const h = parseFloat(tt.height.slice(0, -2)); // Remove the trailing 'px';
+          ll.width = `${w + 20}px`;
+          ll.height = `${h + 20}px`;
+          const hasText = !!tt.text;// !== '';
+          ll.isVisible = hasText;
+          tt.isVisible = hasText;
+        });
+        this.label.addControl(this.text)
+      };
+
+      /**
+       * Show the label with text at the given position.
+       * Typically called from an OnPointerOverTrigger action.
+       * @param {string} s
+       * @param {Vector3} position
+       */
+      show(s, position, offset=0) {
+        this.text.text = s;
+        this.labelMesh.position = position;
+        this.label.isVisible = true;
+        this.text.isVisible = true;
+        this.label.linkOffsetY = offset;
+      }
+
+      /**
+       * Hide the label.
+       * Typically called from an OnPointerOutTrigger action.
+       */
+      hide() {
+        this.text.text = '';
+        this.label.isVisible = false;
+        this.text.isVisible = false;
+      }
+    }
+
+    const textDisplayer = new TextDisplayer();
 
     scene.clearColor = new BABYLON.Color4(...data.background_color);
 
@@ -310,27 +355,18 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     createBlazes(data.vertex);
 
     const createNodes = function () {
-      // BABYLON.Effect.ShadersStore['spritesVertexShader'] = node_spritesVertexShader;
-      // BABYLON.Effect.ShadersStore['spritesPixelShader']  = node_spritesPixelShader;
+      // We use custom shaders for nodes.
+      // We need to blend two icons (background + foreground) into one.
+      // Since we don't need to rotate the icons, we steal the angle value
+      // and sneak the background icon coordinates in there.
+      //
       BABYLON.Effect.RegisterShader('sprites', node_spritesPixelShader, node_spritesVertexShader);
       const spriteMgr = new BABYLON.SpriteManager('vxMgr', `${resourceDir}/${data.sprite_atlas.name}`, NVX, 256, scene);
+
       spriteMgr.fogEnabled = false;
       spriteMgr.isPickable = true;
       console.log('spriteMgr:', spriteMgr);
       console.log('texture: ', spriteMgr.texture.getBaseSize());
-
-      // Labels are implemented by creating a single label, then setting
-      // the text and position when OnPointerOverTrigger happens.
-      // // We can't attach a label to a SpriteManager, so create a dummy label mesh.
-      //
-      const labelMesh = new BABYLON.TransformNode();
-
-      const advancedTexture = BABYLON.GUI.AdvancedDynamicTexture.CreateFullscreenUI("UI");
-      advancedTexture.useInvalidateRectOptimization = false;
-      createLabel(advancedTexture, labelMesh);
-      text1.text = '';
-      label.isVisible = false;
-      text1.isVisible = false;
 
       const w = data.sprite_atlas.width;
       const h = data.sprite_atlas.height;
@@ -355,26 +391,14 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         sprite.isPickable = true;
         sprite.actionManager = new BABYLON.ActionManager(scene);
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event => {
-          // console.log('Over '+event.source.name);
-          // text1.text = data.vertex[event.source.name].label_;
-          text1.text = data.vertex[event.source.name][label_attr];
-          labelMesh.position.x = event.source.position.x;
-          labelMesh.position.y = event.source.position.y;
-          labelMesh.position.z = event.source.position.z;
-          // console.log(`wxh ${text1.width} ${text1.height}`);
-          label.isVisible = true;
-          text1.isVisible = true;
+          textDisplayer.show(data.vertex[event.source.name][label_attr], event.source.position);
         }));
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event => {
-          // console.log('Out '+event.source.name);
-          text1.text = '';
-          label.isVisible = false;
-          text1.isVisible = false;
+          textDisplayer.hide();
         }));
 
         sprite.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event => {
-          console.log('PickP ' + event.source.name);
           eventHandler('v', event.source.name);
           // const v = data.vertex[event.source.name];
           // highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
@@ -423,19 +447,28 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
       liness.actionManager = new BABYLON.ActionManager(scene);
       liness.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOverTrigger, event => {
-        console.log('Line Over', event);
-        const pickResult = scene.pick(event.pointerX, event.pointerY);
-        // console.log('pick result', pickResult);
+        // Launch a ray to pick the mesh in the scene.
+        // This lets us find the particular line (mesh face) that triggered the action.
+        // The predicate avoids meshes that are in front of the line.
+        //
+        const pickResult = scene.pick(event.pointerX, event.pointerY, pm => pm.id==liness.id);
         if(pickResult.hit) {
           // The faceId is the position of the picked face's indices in the
           // indices array. Because the indices array is in the same order as
           // the transactions in the forEach() loop above, it's also an index
           // into the transactions array.
           //
-          console.log(`picked faceId ${pickResult.faceId} at ${pickResult.pickedPoint.x}, ${pickResult.pickedPoint.y},${pickResult.pickedPoint.z}`);
-          console.log(transaction[pickResult.faceId]);
+          const linkIx = pickResult.faceId;
           // eventHandler('t', transaction[pickResult.faceId])
+
+          const s = ''+transaction[linkIx].count
+          textDisplayer.show(s, pickResult.pickedPoint, -20);
         }
+
+        liness.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPointerOutTrigger, event => {
+            textDisplayer.hide();
+        }));
+
       }));
     }
 
@@ -540,9 +573,14 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     scene.scene.render();
   });
 
-  // Watch for browser/canvas resize events
+  // Watch for browser/canvas resize events.
+  // If the canvas covers the window, no problem.
+  // If the canvas is part of a layout, then this listener won't get
+  // notified if the layout changes but the window doesn't.
+  // Sadly, canvas doesn't have a convenient resize event,
+  // we havt to rely on the outer layout totell us when a canvas resize happens.
+  //
   window.addEventListener('resize', function () {
-    console.log('window engine resize');
     engine.resize();
   });
 

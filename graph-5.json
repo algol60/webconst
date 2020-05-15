@@ -145,7 +145,26 @@
         0.0,
         1.0
       ],
-      "directions": "><"
+      "directions": "><",
+      "count": 2,
+      "data": [
+        [
+          "Unknown",
+          null,
+          "Transaction #0",
+          "Manually Created",
+          "Unknown",
+          "2020-05-14 05:30:32+00:00"
+        ],
+        [
+          "Unknown",
+          null,
+          "Transaction #4",
+          "Manually Created",
+          "Unknown",
+          "2020-05-14 05:30:44+00:00"
+        ]
+      ]
     },
     {
       "sid_": "2",
@@ -156,7 +175,18 @@
         0.0,
         1.0
       ],
-      "directions": ">"
+      "directions": ">",
+      "count": 1,
+      "data": [
+        [
+          "Unknown",
+          null,
+          "Transaction #1",
+          "Manually Created",
+          "Unknown",
+          "2020-05-14 05:30:56+00:00"
+        ]
+      ]
     },
     {
       "sid_": "1",
@@ -167,7 +197,18 @@
         1.0,
         1.0
       ],
-      "directions": ">"
+      "directions": ">",
+      "count": 1,
+      "data": [
+        [
+          "Unknown",
+          null,
+          "Transaction #5",
+          "Manually Created",
+          "Unknown",
+          ""
+        ]
+      ]
     },
     {
       "sid_": "0",
@@ -178,7 +219,26 @@
         0.94509804,
         1.0
       ],
-      "directions": ">"
+      "directions": ">",
+      "count": 2,
+      "data": [
+        [
+          "Unknown",
+          null,
+          "Transaction #2",
+          "Manually Created",
+          "Unknown",
+          "2020-05-14 05:31:07+00:00"
+        ],
+        [
+          "Unknown",
+          null,
+          "Transaction #3",
+          "Manually Created",
+          "Unknown",
+          "2020-05-14 05:31:07+00:00"
+        ]
+      ]
     }
   ],
   "sprite_atlas": {
@@ -233,5 +293,13 @@
     "Label",
     "Identifier",
     "Source"
+  ],
+  "ui_tx_attrs": [
+    "Label",
+    "Activity",
+    "Identifier",
+    "Source",
+    "Type",
+    "DateTime"
   ]
 }
