@@ -107,6 +107,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
     class Highlighter {
       static createHighlighter(name, diameter, scene) {
+        diameter *= 2;
         const mesh = BABYLON.MeshBuilder.CreateTorus('torus'+name, {diameter:diameter, thickness:1.0, tessellation:24}, scene);
         mesh.rotate(BABYLON.Axis.X, Math.PI/2, BABYLON.Space.LOCAL);
         mesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL;
@@ -122,15 +123,16 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       };
 
       constructor(scene) {
-        this.mesh = Highlighter.createHighlighter('highlight', SIZE*2, scene);
+        this.diameter = SIZE;
+        this.mesh = Highlighter.createHighlighter('highlight', this.diameter, scene);
         this.hide();
       }
 
       show(position, diameter, scene) {
-        diameter *= 2;
-        if(diameter!=this.mesh.diameter) {
+        if(diameter!=this.diameter) {
           this.mesh.dispose();
-          this.mesh = Highlighter.createHighlighter('highlight', diameter, scene);
+          this.diameter = diameter;
+          this.mesh = Highlighter.createHighlighter('highlight', this.diameter, scene);
         }
 
         // const glow = new BABYLON.GlowLayer("glow", scene);//, {mainTextureSamples:4});
@@ -155,6 +157,79 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         this.mesh.dispose();
       }
     }
+
+        class HighlighterT3 {
+          static createSpinner(name, diameter, color, scene) {
+            const torus = BABYLON.MeshBuilder.CreateTorus('torus'+name, {diameter:diameter, thickness:0.5, tessellation:24}, scene);
+            const texture = new BABYLON.StandardMaterial('texture'+name, scene);
+            texture.diffuseColor = color;
+            texture.emissiveColor = color;
+            texture.alpha = 0.4;
+            torus.material = texture;
+            torus.material.wireframe = false;
+
+            return torus;
+          };
+
+          create() {
+            const d = this.diameter*2;
+            this.torus1 = HighlighterT3.createSpinner('x', d, BABYLON.Color3.Red(), scene);
+            this.torus1.rotate(BABYLON.Axis.X, Math.PI/2, BABYLON.Space.LOCAL);
+            this.torus2 = HighlighterT3.createSpinner('y', d, BABYLON.Color3.Green(), scene)
+            this.torus3 = HighlighterT3.createSpinner('z', d, BABYLON.Color3.Blue(), scene)
+            this.torus3.rotate(BABYLON.Axis.Z, Math.PI/2, BABYLON.Space.WORLD);
+
+            this.glow = new BABYLON.GlowLayer("glow", scene);//, {mainTextureSamples:4});
+            this.glow.intensity = 1.0;
+            this.glow.addIncludedOnlyMesh(this.torus1);
+            this.glow.addIncludedOnlyMesh(this.torus2);
+            this.glow.addIncludedOnlyMesh(this.torus3);
+          }
+
+          constructor(scene) {
+            this.diameter = SIZE;
+            this.create();
+            this.hide();
+          }
+
+          show(position, diameter, scene) {
+            if(diameter!=this.diameter) {
+              this.dispose();
+              this.diameter = diameter;
+              this.create();
+            }
+
+            this.torus1.position = position;
+            this.torus2.position = position;
+            this.torus3.position = position;
+            this.torus1.isVisible = true;
+            this.torus2.isVisible = true;
+            this.torus3.isVisible = true;
+          }
+
+          hide() {
+            this.torus1.isVisible = false;
+            this.torus2.isVisible = false;
+            this.torus3.isVisible = false;
+          }
+
+          spin() {
+            const ticks = 45;
+            this.torus1.rotate(BABYLON.Axis.X, Math.PI/ticks, BABYLON.Space.WORLD);
+            this.torus1.rotate(BABYLON.Axis.Z, 0.01, BABYLON.Space.LOCAL);
+            this.torus2.rotate(BABYLON.Axis.Z, Math.PI/ticks, BABYLON.Space.WORLD);
+            this.torus2.rotate(BABYLON.Axis.X, 0.01, BABYLON.Space.LOCAL);
+            this.torus3.rotate(BABYLON.Axis.Y, Math.PI/ticks, BABYLON.Space.WORLD);
+            this.torus3.rotate(BABYLON.Axis.Z, 0.01, BABYLON.Space.LOCAL);
+          }
+
+          dispose() {
+            this.torus1.dispose();
+            this.torus2.dispose();
+            this.torus3.dispose();
+            this.glow.dispose();
+          }
+        }
 
     // Scene and lights.
     //
