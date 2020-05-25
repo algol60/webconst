@@ -238,9 +238,13 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     const highlight = new Highlighter(scene);
 
     const selectVxId = id => {
-      console.log(`select vx id ${id}`);
+      console.log(`vis select vx id ${id}`);
       const v = data.vertex[id];
       highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
+    };
+
+    const selectLinkId = id => {
+      console.log(`vis select link id ${id}`);
     };
 
     // Camera.
@@ -544,6 +548,17 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
             textDisplayer.hide();
         }));
 
+        liness.actionManager.registerAction(new BABYLON.ExecuteCodeAction(BABYLON.ActionManager.OnPickTrigger, event => {
+          const pickResult = scene.pick(event.pointerX, event.pointerY, pm => pm.id==liness.id);
+          if(pickResult.hit) {
+            const linkIx = pickResult.faceId;
+            eventHandler('link', linkIx);//, transaction[pickResult.faceId])
+
+            const s = ''+transaction[linkIx].count
+            console.log(`picked ${s}`);
+          }
+        }));
+
       }));
     }
 
@@ -627,7 +642,8 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       scene: scene,
       resetCamera, resetCamera,
       resize: resize,
-      selectVxId: selectVxId
+      selectVxId: selectVxId,
+      selectLinkId: selectLinkId
     };
   }
   // );
@@ -662,6 +678,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
   return {
     resetCamera: scene.resetCamera,
     resize: resize,
-    selectVxId: scene.selectVxId
+    selectVxId: scene.selectVxId,
+    selectLinkId: scene.selectLinkId
   };
 }

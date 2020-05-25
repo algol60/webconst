@@ -76,6 +76,10 @@
             ui.selectVxId(id);
             vis.selectVxId(id);
             break;
+          case 'link':
+            ui.unselect();
+            ui.selectLinkId(id);
+            vis.selectLinkId(id);
           default:
             console.log(`Unknown event ${event}`);
         }

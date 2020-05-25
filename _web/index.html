@@ -60,6 +60,8 @@
           case 'v': // vertex event
             vis.selectVxId(id);
             break;
+          case 'link':
+            vis.selectLinkId(id);
           default:
             console.log(`Unknown event ${event}`);
         }

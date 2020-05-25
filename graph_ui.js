@@ -12,9 +12,19 @@ const buildGraphUi = function(data, eventHandler) {
     grid.scrollIntoView(grid.get(id, true));
   }
 
+  const selectLinkId = function(id) {
+    const grid = w2ui['grid_links'];
+    grid.selectNone();
+    id = id + '#';
+    const toSelect = grid.records.filter(row => row.recid.startsWith(id));
+    grid.select(...toSelect);
+    grid.scrollIntoView(grid.get(toSelect[0], true));
+  }
+
   const unselect = function() {
     w2ui['sidebar'].unselect();
     w2ui['grid_nodes'].selectNone();
+    w2ui['grid_links'].selectNone();
   }
 
   const pstyle = 'border: 1px solid #dfdfdf; padding: 5px;';
@@ -152,9 +162,12 @@ const buildGraphUi = function(data, eventHandler) {
   // Build the link grid.
   //
   if(data.hasOwnProperty('ui_tx_attrs')) {
+    const link_field = [];
     for(const attr of data.ui_tx_attrs) {
       const cap = '<img src="icons/links.png">' + attr;
-      w2ui['grid_links'].addColumn({field:attr.replace(/\./g, '_'), text:cap});
+      const field = attr.replace(/\./g, '_')
+      link_field.push(field);
+      w2ui['grid_links'].addColumn({field:field, text:cap});
     }
 
     // So we can zip the attribute names and values.
@@ -162,12 +175,21 @@ const buildGraphUi = function(data, eventHandler) {
     const zip = function(...rows) {return [...rows[0].map((_,c)=>rows.map(row=>row[c]))]};
 
     const rows = [];
-    data.transaction.forEach(link => {
-      const row = {recid:`${link.sid_}/${link.did_}`};
+    data.transaction.forEach((link, ix) => {
+      // w2ui.grid uses 'recid' as the default unique row identifier.
+      //
+      // const row = {recid:`${link.sid_}/${link.did_}`};
+
+      // Each link can have more than one data row associated with it.
+      // Build a unique recid in such a way that we can select the rows
+      // belonging to a link by index.
+      //
       link.data.forEach(values => {
-        for(const [field, value] of zip(data.ui_tx_attrs, values)) {
-          row[field] = value;
+        const row = {recid:`${ix}#${rows.length}`};
+        for(const [field, value] of zip(link_field, values)) {
+          row[field] = value + '+' + row.recid;
         }
+        console.log(row);
         rows.push(row);
       });
     });
@@ -176,6 +198,7 @@ const buildGraphUi = function(data, eventHandler) {
 
   return {
     selectVxId: selectVxId,
+    selectLinkId: selectLinkId,
     unselect: unselect
   };
 }
