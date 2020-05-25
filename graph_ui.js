@@ -6,7 +6,7 @@ const buildGraphUi = function(data, eventHandler) {
    */
   const selectVxId = function(id) {
     w2ui['sidebar'].select(id);
-    const grid = w2ui['grid'];
+    const grid = w2ui['grid_nodes'];
     grid.selectNone();
     grid.select(id);
     grid.scrollIntoView(grid.get(id, true));
@@ -14,12 +14,12 @@ const buildGraphUi = function(data, eventHandler) {
 
   const unselect = function() {
     w2ui['sidebar'].unselect();
-    w2ui['grid'].selectNone();
+    w2ui['grid_nodes'].selectNone();
   }
 
   const pstyle = 'border: 1px solid #dfdfdf; padding: 5px;';
   const config = {
-    layout: {
+    layout: { // The main layout.
       name: 'layout',
       padding: 1,
       panels: [
@@ -32,10 +32,18 @@ const buildGraphUi = function(data, eventHandler) {
         event.done(() => eventHandler('g', 'resize'));
       }
     },
+    layout_grids: { // The main 'bottom' layout contains a nested layout for the node and link grids.
+      name: 'layout_grids',
+      padding: 1,
+      panels: [
+        { type:'left', size:'50%', resizable:true, style:pstyle, content:'nodes'},
+        { type:'main', resizable:true, style:pstyle, content:'links'},
+      ]
+    },
     toolbar: {
       name: 'toolbar',
       items: [
-          { type: 'button', id: 'reset', text: 'Reset graph', icon: 'fas fa-sync' }//,
+          { type: 'button', id: 'reset', text: 'Reset graph', img: 'zoom-reset' }//,
           // { type: 'break' },
           // { type: 'check', id: 'item3', text: 'Check 1'},//, icon: 'fas fa-star' },
           // { type: 'check', id: 'item4', text: 'Check 2', icon: 'fas fa-heart' },
@@ -66,12 +74,19 @@ const buildGraphUi = function(data, eventHandler) {
         eventHandler('v', event.target);
       }
     },
-    grid: {
-      name: 'grid',
+    grid_nodes: {
+      name: 'grid_nodes',
       onClick: function(event) {
-        console.log(event);
+        console.log('node', event);
         // selectId(event.recid);
         eventHandler('v', event.recid);
+      }
+    },
+    grid_links: {
+      name: 'grid_links',
+      onClick: function(event) {
+        console.log('link', event);
+        eventHandler('t', event.recid);
       }
     }
   };
@@ -81,7 +96,14 @@ const buildGraphUi = function(data, eventHandler) {
     $('#main').w2layout(config.layout);
     w2ui.layout.html('top', $().w2toolbar(config.toolbar));
     w2ui.layout.html('left', $().w2sidebar(config.sidebar));
-    w2ui.layout.html('bottom', $().w2grid(config.grid));
+    // w2ui.layout.html('bottom', $().w2grid(config.grid_nodes));
+
+    w2ui.layout.html('bottom', $().w2layout(config.layout_grids));
+    w2ui.layout_grids.html('left', $().w2grid(config.grid_nodes));
+    w2ui.layout_grids.html('main', $().w2grid(config.grid_links));
+
+
+
     // w2ui.layout.content('main', $().w2grid(config.grid1));
     // in memory initialization
     // $().w2grid(config.grid2);
@@ -90,7 +112,7 @@ const buildGraphUi = function(data, eventHandler) {
   // Which attributes are used for the label and node color attributes?
   //
   const label_attr = data.label_attr;
-  const node_color_attr = data.node_color_attr;
+  // const node_color_attr = data.node_color_attr;
 
   // Build the list of noted nodes.
   //
@@ -104,13 +126,15 @@ const buildGraphUi = function(data, eventHandler) {
     w2ui['sidebar'].refresh();
   }
 
-  // Build the grid.
+  // Build the node grid.
   //
   if(data.hasOwnProperty('ui_attrs')) {
       for(const attr of data.ui_attrs) {
-      console.log(`attr: ${attr}`);
-      w2ui['grid'].addColumn({field:attr.replace(/\./g, '_'), text:attr});
-    }
+        const cap = '<img src="icons/nodes.png">' + attr;
+
+        console.log(`attr: ${cap}`);
+        w2ui['grid_nodes'].addColumn({field:attr.replace(/\./g, '_'), text:cap});
+      }
 
     const rows = [];
     for(const [id, vx] of Object.entries(data.vertex)) {
@@ -120,10 +144,34 @@ const buildGraphUi = function(data, eventHandler) {
       for(const attr of data.ui_attrs) {
         row[attr.replace(/\./g, '_')] = vx[attr];
       }
-      console.log('NEW ROW', row);
       rows.push(row);
     }
-    w2ui['grid'].add(rows);
+    w2ui['grid_nodes'].add(rows);
+  }
+
+  // Build the link grid.
+  //
+  if(data.hasOwnProperty('ui_tx_attrs')) {
+    for(const attr of data.ui_tx_attrs) {
+      const cap = '<img src="icons/links.png">' + attr;
+      w2ui['grid_links'].addColumn({field:attr.replace(/\./g, '_'), text:cap});
+    }
+
+    // So we can zip the attribute names and values.
+    //
+    const zip = function(...rows) {return [...rows[0].map((_,c)=>rows.map(row=>row[c]))]};
+
+    const rows = [];
+    data.transaction.forEach(link => {
+      const row = {recid:`${link.sid_}/${link.did_}`};
+      link.data.forEach(values => {
+        for(const [field, value] of zip(data.ui_tx_attrs, values)) {
+          row[field] = value;
+        }
+        rows.push(row);
+      });
+    });
+    w2ui['grid_links'].add(rows);
   }
 
   return {
