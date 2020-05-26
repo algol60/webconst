@@ -104,6 +104,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
   const createScene = function () {
     const SIZE = 2.5;
+    const ARROWHEAD_LENGTH = 0.5;
 
     class Highlighter {
       static createHighlighter(name, diameter, scene) {
@@ -158,84 +159,159 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       }
     }
 
-        class HighlighterT3 {
-          static createSpinner(name, diameter, color, scene) {
-            const torus = BABYLON.MeshBuilder.CreateTorus('torus'+name, {diameter:diameter, thickness:0.5, tessellation:24}, scene);
-            const texture = new BABYLON.StandardMaterial('texture'+name, scene);
-            texture.diffuseColor = color;
-            texture.emissiveColor = color;
-            texture.alpha = 0.4;
-            torus.material = texture;
-            torus.material.wireframe = false;
+    class HighlighterT3 {
+      static createSpinner(name, diameter, color, scene) {
+        const torus = BABYLON.MeshBuilder.CreateTorus('torus'+name, {diameter:diameter, thickness:0.5, tessellation:24}, scene);
+        const texture = new BABYLON.StandardMaterial('texture'+name, scene);
+        texture.diffuseColor = color;
+        texture.emissiveColor = color;
+        texture.alpha = 0.4;
+        torus.material = texture;
+        torus.material.wireframe = false;
 
-            return torus;
-          };
+        return torus;
+      };
 
-          create() {
-            const d = this.diameter*2;
-            this.torus1 = HighlighterT3.createSpinner('x', d, BABYLON.Color3.Red(), scene);
-            this.torus1.rotate(BABYLON.Axis.X, Math.PI/2, BABYLON.Space.LOCAL);
-            this.torus2 = HighlighterT3.createSpinner('y', d, BABYLON.Color3.Green(), scene)
-            this.torus3 = HighlighterT3.createSpinner('z', d, BABYLON.Color3.Blue(), scene)
-            this.torus3.rotate(BABYLON.Axis.Z, Math.PI/2, BABYLON.Space.WORLD);
+      create() {
+        const d = this.diameter*2;
+        this.torus1 = HighlighterT3.createSpinner('x', d, BABYLON.Color3.Red(), scene);
+        this.torus1.rotate(BABYLON.Axis.X, Math.PI/2, BABYLON.Space.LOCAL);
+        this.torus2 = HighlighterT3.createSpinner('y', d, BABYLON.Color3.Green(), scene)
+        this.torus3 = HighlighterT3.createSpinner('z', d, BABYLON.Color3.Blue(), scene)
+        this.torus3.rotate(BABYLON.Axis.Z, Math.PI/2, BABYLON.Space.WORLD);
 
-            this.glow = new BABYLON.GlowLayer("glow", scene);//, {mainTextureSamples:4});
-            this.glow.intensity = 1.0;
-            this.glow.addIncludedOnlyMesh(this.torus1);
-            this.glow.addIncludedOnlyMesh(this.torus2);
-            this.glow.addIncludedOnlyMesh(this.torus3);
-          }
+        this.glow = new BABYLON.GlowLayer('glow_torus', scene);//, {mainTextureSamples:4});
+        this.glow.intensity = 1.0;
+        this.glow.addIncludedOnlyMesh(this.torus1);
+        this.glow.addIncludedOnlyMesh(this.torus2);
+        this.glow.addIncludedOnlyMesh(this.torus3);
+      }
 
-          constructor(scene) {
-            this.diameter = SIZE;
-            this.create();
-            this.hide();
-          }
+      constructor(scene) {
+        this.diameter = SIZE;
+        this.create();
+        this.hide();
+      }
 
-          show(position, diameter, scene) {
-            if(diameter!=this.diameter) {
-              this.dispose();
-              this.diameter = diameter;
-              this.create();
-            }
-
-            this.torus1.position = position;
-            this.torus2.position = position;
-            this.torus3.position = position;
-            this.torus1.isVisible = true;
-            this.torus2.isVisible = true;
-            this.torus3.isVisible = true;
-          }
-
-          hide() {
-            this.torus1.isVisible = false;
-            this.torus2.isVisible = false;
-            this.torus3.isVisible = false;
-          }
-
-          spin() {
-            const ticks = 45;
-            this.torus1.rotate(BABYLON.Axis.X, Math.PI/ticks, BABYLON.Space.WORLD);
-            this.torus1.rotate(BABYLON.Axis.Z, 0.01, BABYLON.Space.LOCAL);
-            this.torus2.rotate(BABYLON.Axis.Z, Math.PI/ticks, BABYLON.Space.WORLD);
-            this.torus2.rotate(BABYLON.Axis.X, 0.01, BABYLON.Space.LOCAL);
-            this.torus3.rotate(BABYLON.Axis.Y, Math.PI/ticks, BABYLON.Space.WORLD);
-            this.torus3.rotate(BABYLON.Axis.Z, 0.01, BABYLON.Space.LOCAL);
-          }
-
-          dispose() {
-            this.torus1.dispose();
-            this.torus2.dispose();
-            this.torus3.dispose();
-            this.glow.dispose();
-          }
+      show(position, diameter, scene) {
+        if(diameter!=this.diameter) {
+          this.dispose();
+          this.diameter = diameter;
+          this.create();
         }
+
+        this.torus1.position = position;
+        this.torus2.position = position;
+        this.torus3.position = position;
+        this.torus1.isVisible = true;
+        this.torus2.isVisible = true;
+        this.torus3.isVisible = true;
+      }
+
+      hide() {
+        this.torus1.isVisible = false;
+        this.torus2.isVisible = false;
+        this.torus3.isVisible = false;
+      }
+
+      spin() {
+        const ticks = 45;
+        this.torus1.rotate(BABYLON.Axis.X, Math.PI/ticks, BABYLON.Space.WORLD);
+        this.torus1.rotate(BABYLON.Axis.Z, 0.01, BABYLON.Space.LOCAL);
+        this.torus2.rotate(BABYLON.Axis.Z, Math.PI/ticks, BABYLON.Space.WORLD);
+        this.torus2.rotate(BABYLON.Axis.X, 0.01, BABYLON.Space.LOCAL);
+        this.torus3.rotate(BABYLON.Axis.Y, Math.PI/ticks, BABYLON.Space.WORLD);
+        this.torus3.rotate(BABYLON.Axis.Z, 0.01, BABYLON.Space.LOCAL);
+      }
+
+      dispose() {
+        this.torus1.dispose();
+        this.torus2.dispose();
+        this.torus3.dispose();
+        this.glow.dispose();
+      }
+    }
+
+    /**
+     * Highlight a line.
+     */
+    class LineHighlighter {
+      static createSpinner(name, height, scene) {
+        const faceUV = [
+          new BABYLON.Vector4(0, 0, 0.49, 0.49), 	// bottom cap
+          new BABYLON.Vector4(0, 0.5, 1.0, 1.0),  // tube
+          new BABYLON.Vector4(0, 0, 0.49, 0.49)   // top cap
+        ];
+        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25/2, height:height, faceUV:faceUV, updatable:false}, scene);
+        const texture = new BABYLON.StandardMaterial('texture' + name, scene);
+        texture.diffuseTexture = new BABYLON.Texture(`${resourceDir}/highlight-texture.png`);
+        texture.emissiveColor = BABYLON.Color3.White();
+        cyl.material = texture;
+
+        return cyl;
+      }
+
+      create(height, scene) {
+        this.cyl = LineHighlighter.createSpinner('linehigh', height, scene);
+        this.hide();
+      }
+
+      constructor(scene) {
+        this.create(1, scene);
+
+        this.glow = new BABYLON.GlowLayer('glowlinehigh', scene);//, {mainTextureSamples:4});
+        this.glow.intensity = 0.35;
+        this.glow.isEnabled = false;
+
+        this.hide();
+      }
+
+      show(pos0, nradius0, pos1, nradius1, scene) {
+        // The height will almost certainly be different every time,
+        // so dispose of the old mesh and create a new one.
+        //
+        this.dispose();
+        console.log('scene', scene);
+        console.log('pos0', pos0);
+        console.log('pos1', pos1);
+
+        const offset0 = 0.5 / 2 + nradius0 * Math.sqrt(SIZE / 2);
+        const offset1 = 0.5 / 2 + nradius1 * Math.sqrt(SIZE / 2);
+        const height = pos1.subtract(pos0).length() - offset0 - offset1 - ARROWHEAD_LENGTH;
+
+        console.log('height', height);
+        this.create(height, scene);
+        const position = pos0.add(pos1).scale(0.5);
+        this.cyl.position = position;
+        this.cyl.lookAt(pos0, 0, -Math.PI / 2, Math.PI);
+
+        this.cyl.isVisible = true;
+        this.glow.addIncludedOnlyMesh(this.cyl);
+        this.glow.isEnabled = true;
+      }
+
+      hide() {
+        this.cyl.isVisible = false;
+      }
+
+      spin() {
+        const ticks = 90;
+        this.cyl.rotate(BABYLON.Axis.Y, Math.PI / ticks, BABYLON.Space.LOCAL);
+      }
+
+      dispose() {
+        this.glow.enabled = false;
+        this.glow.removeIncludedOnlyMesh(this.cyl);
+        this.cyl.dispose();
+      }
+    }
 
     // Scene and lights.
     //
     const scene = new BABYLON.Scene(engine);
 
     const highlight = new Highlighter(scene);
+    const lineHighlight = new LineHighlighter(scene);
 
     const selectVxId = id => {
       console.log(`vis select vx id ${id}`);
@@ -245,6 +321,13 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
     const selectLinkId = id => {
       console.log(`vis select link id ${id}`);
+      const link = data.transaction[id];
+      console.log('LINK', link);
+      const src = data.vertex[link.sid_];
+      const srcPos = new BABYLON.Vector3(src.x, src.y, -src.z);
+      const dst = data.vertex[link.did_];
+      const dstPos = new BABYLON.Vector3(dst.x, dst.y, -dst.z);
+      lineHighlight.show(srcPos, src.nradius, dstPos, dst.nradius, scene);
     };
 
     // Camera.
@@ -392,7 +475,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         tessellation: 4
       }, scene);
       // blazeMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL
-      blazeMesh.alwaysSelectAsActiveMesh = true;
+      // blazeMesh.alwaysSelectAsActiveMesh = true;
       blazeMesh.isVisible = false;
 
       let colorData = new Float32Array(4 * (nBlazes + 1));
@@ -427,7 +510,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         instance.position.x = v.x + offset * Math.sin(zangle);
         instance.position.y = v.y + offset * Math.cos(zangle);
         instance.position.z = -v.z;
-        instance.alwaysSelectAsActiveMesh = true;
+        // instance.alwaysSelectAsActiveMesh = true;
       }
     };
 
@@ -580,12 +663,12 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
       const nArrows = arrows.length;
       const arrowMesh = BABYLON.MeshBuilder.CreateCylinder('arrowheads', {
-        height: 0.5,
+        height: ARROWHEAD_LENGTH,
         diameterBottom: 0.25,
         diameterTop: 0.0,
         tessellation: 4
       }, scene);
-      arrowMesh.alwaysSelectAsActiveMesh = true;
+      // arrowMesh.alwaysSelectAsActiveMesh = true;
       arrowMesh.isVisible = false;
 
       let colorData = new Float32Array(4 * (nArrows + 1));
@@ -615,7 +698,8 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         //
         const sv = vxs[arrows[ix].sid_];
         const dv = vxs[arrows[ix].did_];
-        const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
+        // const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
+        const hypot = BABYLON.Vector3.Distance(sv, dv);
         const offset = 0.5 / 2 + dv.nradius * Math.sqrt(SIZE / 2); // offset by half height of cylinder + size of node
         const ox = offset * (sv.x - dv.x) / hypot;
         const oy = offset * (sv.y - dv.y) / hypot;
@@ -628,7 +712,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         // The pitch and roll make the cylinder line up in the correct direction.
         //
         instance.lookAt(new BABYLON.Vector3(dv.x, dv.y, -dv.z), 0, -Math.PI / 2, Math.PI);
-        instance.alwaysSelectAsActiveMesh = true;
+        // instance.alwaysSelectAsActiveMesh = true;
       }
     };
 
@@ -636,6 +720,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
     scene.registerBeforeRender(function() {
       highlight.spin();
+      lineHighlight.spin();
     });
 
     return {
