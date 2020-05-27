@@ -53,7 +53,8 @@ const buildGraphUi = function(data, eventHandler) {
     toolbar: {
       name: 'toolbar',
       items: [
-          { type: 'button', id: 'reset', text: 'Reset graph', img: 'zoom-reset' }//,
+          { type: 'button', id: 'reset', text: 'Reset graph', img: 'zoom-reset' },
+          { type: 'button', id: 'unselect', text: 'Deselect', img: 'deselect-all' }//,
           // { type: 'break' },
           // { type: 'check', id: 'item3', text: 'Check 1'},//, icon: 'fas fa-star' },
           // { type: 'check', id: 'item4', text: 'Check 2', icon: 'fas fa-heart' },
@@ -70,6 +71,9 @@ const buildGraphUi = function(data, eventHandler) {
               unselect();
               eventHandler('g', 'reset');
               break;
+            case 'unselect':
+              unselect();
+              eventHandler('g', 'unselect');
             default:
               console.log(`Unknown target: ${event.target}`);
           }

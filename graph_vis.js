@@ -236,51 +236,59 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
      * Highlight a line.
      */
     class LineHighlighter {
-      static createSpinner(name, height, scene) {
+      static createSpinner(name, height, color, scene) {
         const faceUV = [
           new BABYLON.Vector4(0, 0, 0.49, 0.49), 	// bottom cap
-          new BABYLON.Vector4(0, 0.5, 1.0, 1.0),  // tube
+          new BABYLON.Vector4(0, 0.5, 1.0, 1.0),      // tube
           new BABYLON.Vector4(0, 0, 0.49, 0.49)   // top cap
         ];
-        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25/2, height:height, faceUV:faceUV, updatable:false}, scene);
+        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:2+0.25, height:height, faceUV:faceUV, updatable:false, sideOrientation:BABYLON.Mesh.DOUBLESIDE}, scene);
+        // const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25/2, height:height, sideOrientation:BABYLON.Mesh.DOUBLESIDE, frontUVs:faceUV, backUVs:faceUV, updatable:false}, scene);
         const texture = new BABYLON.StandardMaterial('texture' + name, scene);
-        texture.diffuseTexture = new BABYLON.Texture(`${resourceDir}/highlight-texture.png`);
-        texture.emissiveColor = BABYLON.Color3.White();
+        texture.diffuseTexture = new BABYLON.Texture(`${resourceDir}/highlight-link-texture.png`);
+        texture.diffuseTexture.hasAlpha = true;
+        texture.backFaceCulling = false;
+        // texture.twoSidedLighting = true;
+        // texture.disableLighting = true;
+        texture.emissiveColor = color;
         cyl.material = texture;
 
         return cyl;
       }
 
-      create(height, scene) {
-        this.cyl = LineHighlighter.createSpinner('linehigh', height, scene);
-        this.hide();
+      create(height, color, scene) {
+        this.cyl = LineHighlighter.createSpinner('linehigh', height, color, scene);
       }
 
       constructor(scene) {
-        this.create(1, scene);
+        this.create(scene);
 
         this.glow = new BABYLON.GlowLayer('glowlinehigh', scene);//, {mainTextureSamples:4});
-        this.glow.intensity = 0.35;
+        this.glow.intensity = 0.75;
         this.glow.isEnabled = false;
 
         this.hide();
       }
 
-      show(pos0, nradius0, pos1, nradius1, scene) {
+      show(pos0, nradius0, pos1, nradius1, color, scene) {
         // The height will almost certainly be different every time,
         // so dispose of the old mesh and create a new one.
         //
         this.dispose();
-        console.log('scene', scene);
+
+        // Calculate the height and position of the highlight cylinder.
+        // TODO Take into account arrow/no-arrow at either end.
+        //
         console.log('pos0', pos0);
         console.log('pos1', pos1);
-
         const offset0 = 0.5 / 2 + nradius0 * Math.sqrt(SIZE / 2);
         const offset1 = 0.5 / 2 + nradius1 * Math.sqrt(SIZE / 2);
-        const height = pos1.subtract(pos0).length() - offset0 - offset1 - ARROWHEAD_LENGTH;
+        // const height = pos1.subtract(pos0).length() - offset0 - offset1 - ARROWHEAD_LENGTH;
+        const height = BABYLON.Vector3.Distance(pos0, pos1) - offset0 - offset1 - ARROWHEAD_LENGTH;
 
+        // const height = pos1.subtract(pos0).length();
         console.log('height', height);
-        this.create(height, scene);
+        this.create(height, color, scene);
         const position = pos0.add(pos1).scale(0.5);
         this.cyl.position = position;
         this.cyl.lookAt(pos0, 0, -Math.PI / 2, Math.PI);
@@ -322,12 +330,13 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     const selectLinkId = id => {
       console.log(`vis select link id ${id}`);
       const link = data.transaction[id];
-      console.log('LINK', link);
+      const color = new BABYLON.Color4(...link.color);
+      console.log('LINK', link, color);
       const src = data.vertex[link.sid_];
       const srcPos = new BABYLON.Vector3(src.x, src.y, -src.z);
       const dst = data.vertex[link.did_];
       const dstPos = new BABYLON.Vector3(dst.x, dst.y, -dst.z);
-      lineHighlight.show(srcPos, src.nradius, dstPos, dst.nradius, scene);
+      lineHighlight.show(srcPos, src.nradius, dstPos, dst.nradius, color, scene);
     };
 
     // Camera.
@@ -450,8 +459,15 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       camera.position = new BABYLON.Vector3(...data.camera.eye);
       camera.target = new BABYLON.Vector3(...data.camera.centre);
       camera.upVector = new BABYLON.Vector3(...data.camera.up);
-      highlight.hide();
+      unselect();
+      // highlight.hide();
+      // lineHighlight.hide();
     };
+
+    const unselect = function() {
+      highlight.hide();
+      lineHighlight.hide();
+    }
 
     data.camera.eye[2] = -data.camera.eye[2];
     data.camera.centre[2] = -data.camera.centre[2];
@@ -586,7 +602,8 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       transaction.forEach(tx => {
         const sv = vxs[tx['sid_']];
         const dv = vxs[tx['did_']];
-        const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
+        // const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
+        const hypot = BABYLON.Vector3.Distance(sv, dv);
         const soffset = sv.nradius * Math.sqrt(SIZE / 2); // offset by size of node
         const osx = soffset * (sv.x - dv.x) / hypot;
         const osy = soffset * (sv.y - dv.y) / hypot;
@@ -679,7 +696,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         colorData[ix * 4 + 3] = arrows[ix].color[3];
       }
 
-      const buffer = new BABYLON.VertexBuffer(engine, colorData, BABYLON.VertexBuffer.ColorKind, false, false, 4, true);
+      const buffer = new BABYLON.VertexBuffer(engine, colorData, BABYLON.VertexBuffer.ColorKind, false, false, 4, true, 0, nArrows-1);
       arrowMesh.setVerticesBuffer(buffer);
 
       arrowMesh.material = new BABYLON.StandardMaterial('arrow_mat');
@@ -728,7 +745,8 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       resetCamera, resetCamera,
       resize: resize,
       selectVxId: selectVxId,
-      selectLinkId: selectLinkId
+      selectLinkId: selectLinkId,
+      unselect: unselect
     };
   }
   // );
@@ -764,6 +782,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     resetCamera: scene.resetCamera,
     resize: resize,
     selectVxId: scene.selectVxId,
-    selectLinkId: scene.selectLinkId
+    selectLinkId: scene.selectLinkId,
+    unselect: scene.unselect
   };
 }
