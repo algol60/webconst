@@ -1,21 +1,7 @@
-# Make a texture for the highlighting torus.
+# Make highlight textures.
 #
 
 from PIL import Image, ImageDraw, ImageColor
-
-# def make4():
-#     color1 = 255, 255, 0
-#     color2 = 255, 0, 0
-#     # color2 = 70, 130, 180
-
-#     img = Image.new('RGBA', (256, 256), (0, 0, 0, 0))
-#     draw = ImageDraw.Draw(img)
-#     draw.rectangle([(0,0), (128, 128)], fill=color1)
-#     draw.rectangle([(128, 128), (256, 256)], fill=color1)
-#     draw.rectangle([(128,0), (256,128)], color2)
-#     draw.rectangle([(0,128), (128,256)], color2)
-
-#     return img
 
 def make_torus_colors():
     """Make a color wheel textUre for the node highlighting torus.
@@ -49,33 +35,35 @@ def make_link_chunks(debug=False):
     The top half contains the colors, the bottom half is transparent.
     """
 
-    def draw_rect1(draw, x, y, size, color):
-        draw.rectangle([(x,y), (x+size,y+size//2)], fill=color)
+    def draw_rect1(draw, x, y, xsize, ysize, color):
+        draw.rectangle([(x,y), (x+xsize,y+ysize)], fill=color)
 
-    def draw_rect2(draw, x, y, size, color):
-        draw.rectangle([(x,y), (x+size//2,y+size//3//2)], fill=color)
-        draw.rectangle([(x+size//2,y+size//3), (x+size,y+size//2)], fill=color)
+    def draw_rect2(draw, x, y, xsize, ysize, color):
+        draw.rectangle([(x,y), (x+xsize,y+ysize//4)], fill=color)
+        draw.rectangle([(x,y+ysize*3//4), (x+xsize,y+ysize)], fill=color)
 
     bg = (0,0,0,255) if debug else (0,0,0,0)
     N = 256
     img = Image.new('RGBA', (N, N), bg)
     draw = ImageDraw.Draw(img)
 
+    if debug:
+        draw.line([(0,N//2), (N,N//2)], fill=(255,255,255,255))
+
     color = (0,0,255,255) if debug else (255,255,255,255)
     print(color)
     NS = 8
-    size = N//NS
-    print(f'size={size}')
+    xsize = N//NS
+    ysize = xsize//2
+    print(f'size={xsize},{ysize}')
     for x in range(NS):
         for y in range(NS):
             do_draw = (x%2==0 and y%2==0) or (x%2==1 and y%2==1)
             print('*' if do_draw else ' ', end='')
             if do_draw:
-                # print(x,y)
-                xx = x*size
-                yy = y*size//2
-                # draw.rectangle([(xx,yy), (xx+size,yy+size//2)], fill=color)
-                draw_rect1(draw, xx, yy, size, color)
+                xx = x*xsize
+                yy = y*ysize
+                draw_rect2(draw, xx, yy, xsize, ysize, color)
 
         print()
 

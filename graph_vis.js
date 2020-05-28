@@ -518,7 +518,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         tessellation: 4
       }, scene);
       // blazeMesh.billboardMode = BABYLON.Mesh.BILLBOARDMODE_ALL
-      // blazeMesh.alwaysSelectAsActiveMesh = true;
+      blazeMesh.alwaysSelectAsActiveMesh = true;
       blazeMesh.isVisible = false;
 
       let colorData = new Float32Array(4 * (nBlazes + 1));
@@ -539,6 +539,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       const toRadians = angle => angle * (Math.PI / 180);
       for (let ix = 0; ix < nBlazes; ix++) {
         const instance = blazeMesh.createInstance('blaze' + ix);
+        instance.alwaysSelectAsActiveMesh = true;
         // instance.enableEdgesRendering();
         // instance.edgesWidth = 1.0;
         // instance.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
@@ -553,7 +554,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         instance.position.x = v.x + offset * Math.sin(zangle);
         instance.position.y = v.y + offset * Math.cos(zangle);
         instance.position.z = -v.z;
-        // instance.alwaysSelectAsActiveMesh = true;
       }
     };
 
@@ -712,19 +712,11 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         diameterTop: 0.0,
         tessellation: 4
       }, scene);
-      // arrowMesh.alwaysSelectAsActiveMesh = true;
+      arrowMesh.alwaysSelectAsActiveMesh = true;
+      arrowMesh.registerInstancedBuffer('color', 4);
+      arrowMesh.instancedBuffers.color = BABYLON.Color3.White();
+
       arrowMesh.isVisible = false;
-
-      let colorData = new Float32Array(4 * (nArrows + 1));
-      for (let ix = 0; ix < nArrows; ix++) {
-        colorData[ix * 4 + 0] = arrows[ix].color[0];
-        colorData[ix * 4 + 1] = arrows[ix].color[1];
-        colorData[ix * 4 + 2] = arrows[ix].color[2];
-        colorData[ix * 4 + 3] = arrows[ix].color[3];
-      }
-
-      const buffer = new BABYLON.VertexBuffer(engine, colorData, BABYLON.VertexBuffer.ColorKind, false, false, 4, true, 0, nArrows-1);
-      arrowMesh.setVerticesBuffer(buffer);
 
       arrowMesh.material = new BABYLON.StandardMaterial('arrow_mat');
       // arrowMesh.material.disableLighting = true;
@@ -734,6 +726,20 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       const toRadians = angle => angle * (Math.PI / 180);
       for (let ix = 0; ix < nArrows; ix++) {
         const instance = arrowMesh.createInstance('arrow' + ix);
+        // Always select as active mesh: without this, instances not on screen
+        // aren't drawn, so the color buffer gets out of sync.
+        //
+        // See:
+        //  - https://forum.babylonjs.com/t/unwanted-color-changing-with-mesh-instances/11168
+        //  - https://doc.babylonjs.com/how_to/how_to_use_instances
+        //
+        instance.alwaysSelectAsActiveMesh = true;
+
+        instance.instancedBuffers.color = new BABYLON.Color4(...arrows[ix].color);
+
+
+        // Show the edges, it looks more 3D and adds definition.
+        //
         instance.enableEdgesRendering();
         instance.edgesWidth = 1.0;
         instance.edgesColor = new BABYLON.Color4(0, 0, 0, 1);
@@ -742,7 +748,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         //
         const sv = vxs[arrows[ix].sid_];
         const dv = vxs[arrows[ix].did_];
-        // const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
         const hypot = BABYLON.Vector3.Distance(sv, dv);
         const offset = ARROWHEAD_LENGTH / 2 + dv.nradius * Math.sqrt(SIZE / 2); // offset by half height of cylinder + size of node
         const ox = offset * (sv.x - dv.x) / hypot;
@@ -756,7 +761,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         // The pitch and roll make the cylinder line up in the correct direction.
         //
         instance.lookAt(new BABYLON.Vector3(dv.x, dv.y, -dv.z), 0, -Math.PI / 2, Math.PI);
-        // instance.alwaysSelectAsActiveMesh = true;
       }
     };
 
