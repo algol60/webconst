@@ -242,7 +242,11 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
           new BABYLON.Vector4(0, 0.5, 1.0, 1.0),      // tube
           new BABYLON.Vector4(0, 0, 0.49, 0.49)   // top cap
         ];
-        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:2+0.25, height:height, faceUV:faceUV, updatable:false, sideOrientation:BABYLON.Mesh.DOUBLESIDE}, scene);
+
+        // TODO Should the diameter of the link highlighter be dependent on
+        // the length of the line, or the size (x,y,z) of the graph?
+        //
+        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25, height:height, faceUV:faceUV, updatable:false, sideOrientation:BABYLON.Mesh.DOUBLESIDE}, scene);
         // const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25/2, height:height, sideOrientation:BABYLON.Mesh.DOUBLESIDE, frontUVs:faceUV, backUVs:faceUV, updatable:false}, scene);
         const texture = new BABYLON.StandardMaterial('texture' + name, scene);
         texture.diffuseTexture = new BABYLON.Texture(`${resourceDir}/highlight-link-texture.png`);
@@ -270,28 +274,57 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         this.hide();
       }
 
-      show(pos0, nradius0, pos1, nradius1, color, scene) {
+      show(link) {
         // The height will almost certainly be different every time,
         // so dispose of the old mesh and create a new one.
         //
         this.dispose();
 
-        // Calculate the height and position of the highlight cylinder.
-        // TODO Take into account arrow/no-arrow at either end.
-        //
-        console.log('pos0', pos0);
-        console.log('pos1', pos1);
-        const offset0 = 0.5 / 2 + nradius0 * Math.sqrt(SIZE / 2);
-        const offset1 = 0.5 / 2 + nradius1 * Math.sqrt(SIZE / 2);
-        // const height = pos1.subtract(pos0).length() - offset0 - offset1 - ARROWHEAD_LENGTH;
-        const height = BABYLON.Vector3.Distance(pos0, pos1) - offset0 - offset1 - ARROWHEAD_LENGTH;
+        const arrowLen = a => link.directions.includes(a) ? ARROWHEAD_LENGTH : 0;
 
-        // const height = pos1.subtract(pos0).length();
-        console.log('height', height);
+        const color = new BABYLON.Color4(...link.color);
+        console.log('LINK', link, color);
+
+        // Calculate the height and position of the highlight cylinder.
+        // Start with the positions of the src and dst nodes.
+        // Adjust for the src nradius and dst nradius.
+        // Adjust for the optional src arrow and dst arrow.
+        //
+        const src = data.vertex[link.sid_];
+        const srcPos = new BABYLON.Vector3(src.x, src.y, -src.z);
+        const dst = data.vertex[link.did_];
+        const dstPos = new BABYLON.Vector3(dst.x, dst.y, -dst.z);
+
+        const hypot = BABYLON.Vector3.Distance(srcPos, dstPos);
+        const soffset = src.nradius * Math.sqrt(SIZE / 2) + arrowLen('<'); // offset by size of node
+        const srco = new BABYLON.Vector3(
+          soffset * (srcPos.x - dstPos.x) / hypot,
+          soffset * (srcPos.y - dstPos.y) / hypot,
+          soffset * (srcPos.z - dstPos.z) / hypot
+        );
+        const doffset = dst.nradius * Math.sqrt(SIZE / 2) + arrowLen('>'); // offset by size of node
+        const dsto = new BABYLON.Vector3(
+          doffset * (dstPos.x - srcPos.x) / hypot,
+          doffset * (dstPos.y - srcPos.y) / hypot,
+          doffset * (dstPos.z - srcPos.z) / hypot
+        );
+
+        // The new src and dst positions with offsets taken into account.
+        //
+        const srcPoso = srcPos.subtract(srco);
+        const dstPoso = dstPos.subtract(dsto);
+
+        const height = BABYLON.Vector3.Distance(srcPoso, dstPoso);
+        console.log('HEIGHT', height);
+
         this.create(height, color, scene);
-        const position = pos0.add(pos1).scale(0.5);
+
+        // Position the cylinder halfway between the end points.
+        // Rotate the cylinder to align it with the line.
+        //
+        const position = srcPoso.add(dstPoso).scale(0.5);
         this.cyl.position = position;
-        this.cyl.lookAt(pos0, 0, -Math.PI / 2, Math.PI);
+        this.cyl.lookAt(dstPoso, 0, -Math.PI / 2, Math.PI);
 
         this.cyl.isVisible = true;
         this.glow.addIncludedOnlyMesh(this.cyl);
@@ -330,13 +363,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     const selectLinkId = id => {
       console.log(`vis select link id ${id}`);
       const link = data.transaction[id];
-      const color = new BABYLON.Color4(...link.color);
-      console.log('LINK', link, color);
-      const src = data.vertex[link.sid_];
-      const srcPos = new BABYLON.Vector3(src.x, src.y, -src.z);
-      const dst = data.vertex[link.did_];
-      const dstPos = new BABYLON.Vector3(dst.x, dst.y, -dst.z);
-      lineHighlight.show(srcPos, src.nradius, dstPos, dst.nradius, color, scene);
+      lineHighlight.show(link);
     };
 
     // Camera.
@@ -717,7 +744,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         const dv = vxs[arrows[ix].did_];
         // const hypot = Math.hypot(sv.x - dv.x, sv.y - dv.y, sv.z - dv.z);
         const hypot = BABYLON.Vector3.Distance(sv, dv);
-        const offset = 0.5 / 2 + dv.nradius * Math.sqrt(SIZE / 2); // offset by half height of cylinder + size of node
+        const offset = ARROWHEAD_LENGTH / 2 + dv.nradius * Math.sqrt(SIZE / 2); // offset by half height of cylinder + size of node
         const ox = offset * (sv.x - dv.x) / hypot;
         const oy = offset * (sv.y - dv.y) / hypot;
         const oz = offset * (sv.z - dv.z) / hypot;
