@@ -54,7 +54,8 @@ const buildGraphUi = function(data, eventHandler) {
       name: 'toolbar',
       items: [
           { type: 'button', id: 'reset', text: 'Reset graph', img: 'zoom-reset' },
-          { type: 'button', id: 'unselect', text: 'Deselect', img: 'deselect-all' }//,
+          { type: 'button', id: 'unselect', text: 'Deselect', img: 'deselect-all' },//,
+          { type: 'button', id: 'screenshot', text: 'Screenshot', img: 'screenshot' }//,
           // { type: 'break' },
           // { type: 'check', id: 'item3', text: 'Check 1'},//, icon: 'fas fa-star' },
           // { type: 'check', id: 'item4', text: 'Check 2', icon: 'fas fa-heart' },
@@ -74,6 +75,10 @@ const buildGraphUi = function(data, eventHandler) {
             case 'unselect':
               unselect();
               eventHandler('g', 'unselect');
+              break;
+            case 'screenshot':
+              eventHandler('g', 'screenshot');
+              break;
             default:
               console.log(`Unknown target: ${event.target}`);
           }
@@ -191,7 +196,7 @@ const buildGraphUi = function(data, eventHandler) {
       link.data.forEach(values => {
         const row = {recid:`${ix}#${rows.length}`};
         for(const [field, value] of zip(link_field, values)) {
-          row[field] = value + '+' + row.recid;
+          row[field] = value;
         }
         console.log(row);
         rows.push(row);

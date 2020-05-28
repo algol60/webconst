@@ -94,7 +94,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     `;
 
   const canvas = document.getElementById('renderCanvas');
-  const engine = new BABYLON.Engine(canvas, true);
+  const engine = new BABYLON.Engine(canvas, true, {preserveDrawingBuffer:true});
   console.log('Maximum texture size:', engine.getCaps().maxTextureSize);
 
   const resize = () =>  {
@@ -486,9 +486,22 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       camera.position = new BABYLON.Vector3(...data.camera.eye);
       camera.target = new BABYLON.Vector3(...data.camera.centre);
       camera.upVector = new BABYLON.Vector3(...data.camera.up);
-      unselect();
-      // highlight.hide();
-      // lineHighlight.hide();
+    };
+
+    /**
+     * Create a screenshot of the graph.
+     */
+    const screenshot = function() {
+      BABYLON.ScreenshotTools.CreateScreenshot(engine, camera, {width:canvas.width, height:canvas.height}, img => {
+        // Hack our way to downloading the image. :-)
+        //
+        const a = document.createElement('a');
+        a.href = img;
+        a.download = 'graph.png';
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+      });
     };
 
     const unselect = function() {
@@ -775,6 +788,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       scene: scene,
       resetCamera, resetCamera,
       resize: resize,
+      screenshot: screenshot,
       selectVxId: selectVxId,
       selectLinkId: selectLinkId,
       unselect: unselect
@@ -812,6 +826,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
   return {
     resetCamera: scene.resetCamera,
     resize: resize,
+    screenshot: scene.screenshot,
     selectVxId: scene.selectVxId,
     selectLinkId: scene.selectLinkId,
     unselect: scene.unselect
