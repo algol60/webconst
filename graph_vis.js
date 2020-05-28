@@ -236,17 +236,58 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
      * Highlight a line.
      */
     class LineHighlighter {
-      static createSpinner(name, height, color, scene) {
+      /**
+       * Determine the physical (x,y,z) size of the graph.
+       *
+       * @param {graph data} data
+       */
+      static getPhysicalSize = function(data) {
+        const values = Object.values(data.vertex);
+        console.log(values);
+        const min3 = new BABYLON.Vector3(values[0].x, values[0].y, -values[0].z);
+        const max3 = new BABYLON.Vector3(values[0].x, values[0].y, -values[0].z);
+        values.forEach(v => {
+          min3.minimizeInPlaceFromFloats(v.x, v.y, -v.z);
+          max3.maximizeInPlaceFromFloats(v.x, v.y, -v.z);
+        });
+
+        const dist = BABYLON.Vector3.Distance(min3, max3);
+        console.log('minmax', min3, max3, dist);
+
+        return dist;
+      };
+
+      /**
+       * Determine a diameter based on the size of the graph.
+       * In a physically large graph, the line highlight can be hard to see.
+       * We use arbitrary numbers to interpolate (change to make it better if you like):
+       * * size==10 -> diameter = 0.25
+       * * size=136 -> diameter = 2
+       *
+       * @param {number} dist
+       */
+      static getDiameter(dist) {
+        dist = Math.max(0, dist-10)
+        dist *= 1.75/126;
+        dist += 0.25;
+        return dist;
+      }
+
+      static createSpinner(name, height, diameter, color, scene) {
+        // We expect the face texture to have the interesting stuff in
+        // the top half (for the tube), and a transparent bottom half (for the caps).
+        // UV coordinates are (0,0) == bottom-left.
+        //
         const faceUV = [
           new BABYLON.Vector4(0, 0, 0.49, 0.49), 	// bottom cap
-          new BABYLON.Vector4(0, 0.5, 1.0, 1.0),      // tube
+          new BABYLON.Vector4(0, 0.5, 1.0, 1.0),  // tube
           new BABYLON.Vector4(0, 0, 0.49, 0.49)   // top cap
         ];
 
         // TODO Should the diameter of the link highlighter be dependent on
         // the length of the line, or the size (x,y,z) of the graph?
         //
-        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25, height:height, faceUV:faceUV, updatable:false, sideOrientation:BABYLON.Mesh.DOUBLESIDE}, scene);
+        const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {height:height, diameter:diameter, faceUV:faceUV, updatable:false, sideOrientation:BABYLON.Mesh.DOUBLESIDE}, scene);
         // const cyl = BABYLON.MeshBuilder.CreateCylinder('cyl' + name, {diameter:0.25/2, height:height, sideOrientation:BABYLON.Mesh.DOUBLESIDE, frontUVs:faceUV, backUVs:faceUV, updatable:false}, scene);
         const texture = new BABYLON.StandardMaterial('texture' + name, scene);
         texture.diffuseTexture = new BABYLON.Texture(`${resourceDir}/highlight-link-texture.png`);
@@ -261,10 +302,13 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       }
 
       create(height, color, scene) {
-        this.cyl = LineHighlighter.createSpinner('linehigh', height, color, scene);
+        this.cyl = LineHighlighter.createSpinner('linehigh', height, this.diameter, color, scene);
       }
 
       constructor(scene) {
+        const physicalSize = LineHighlighter.getPhysicalSize(data);
+        this.diameter = LineHighlighter.getDiameter(physicalSize);
+
         this.create(scene);
 
         this.glow = new BABYLON.GlowLayer('glowlinehigh', scene);//, {mainTextureSamples:4});
