@@ -66,11 +66,11 @@
 
         console.log('@@ Event:', event, id);
         switch(event) {
-          case 'g': // graph event
+          case 'graph': // graph event
             switch(id) {
               case 'reset':
                 vis.resetCamera();
-                ui.unselect();
+                // ui.unselect();
                 break;
               case 'resize':
                 vis.resize();
@@ -80,19 +80,20 @@
                 break;
               case 'unselect':
                 vis.unselect();
-                ui.unselect();
+                ui.unselectVertices();
+                ui.unselectLinks();
                 break;
               default:
                 console.log(`Unknown graph event ${id}`);
             }
             break;
           case 'v': // vertex event
-            ui.unselect();
+            ui.unselectVertices();
             ui.selectVxId(id);
             vis.selectVxId(id);
             break;
           case 'link':
-            ui.unselect();
+            ui.unselectLinks();
             ui.selectLinkId(id);
             vis.selectLinkId(id);
           default:

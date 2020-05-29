@@ -21,9 +21,15 @@ const buildGraphUi = function(data, eventHandler) {
     grid.scrollIntoView(grid.get(toSelect[0], true));
   }
 
-  const unselect = function() {
+  const unselectVertices = function() {
     w2ui['sidebar'].unselect();
     w2ui['grid_nodes'].selectNone();
+    // w2ui['grid_links'].selectNone();
+  }
+
+  const unselectLinks = function() {
+    // w2ui['sidebar'].unselect();
+    // w2ui['grid_nodes'].selectNone();
     w2ui['grid_links'].selectNone();
   }
 
@@ -39,7 +45,7 @@ const buildGraphUi = function(data, eventHandler) {
           { type: 'bottom', size: 200, resizable: true, style:pstyle, content: 'data' }
       ],
       onResize: function(event) {
-        event.done(() => eventHandler('g', 'resize'));
+        event.done(() => eventHandler('graph', 'resize'));
       }
     },
     layout_grids: { // The main 'bottom' layout contains a nested layout for the node and link grids.
@@ -53,7 +59,7 @@ const buildGraphUi = function(data, eventHandler) {
     toolbar: {
       name: 'toolbar',
       items: [
-          { type: 'button', id: 'reset', text: 'Reset graph', img: 'zoom-reset' },
+          { type: 'button', id: 'reset', text: 'Reset camera', img: 'zoom-reset' },
           { type: 'button', id: 'unselect', text: 'Deselect', img: 'deselect-all' },//,
           { type: 'button', id: 'screenshot', text: 'Screenshot', img: 'screenshot' }//,
           // { type: 'break' },
@@ -69,18 +75,18 @@ const buildGraphUi = function(data, eventHandler) {
           console.log('Target: '+ event.target, event);
           switch(event.target) {
             case 'reset':
-              unselect();
-              eventHandler('g', 'reset');
+              // unselect();
+              eventHandler('graph', 'reset');
               break;
             case 'unselect':
-              unselect();
-              eventHandler('g', 'unselect');
+              // unselect();
+              eventHandler('graph', 'unselect');
               break;
             case 'screenshot':
-              eventHandler('g', 'screenshot');
+              eventHandler('graph', 'screenshot');
               break;
             default:
-              console.log(`Unknown target: ${event.target}`);
+              console.log(`Unknown w2ui click target: ${event.target}`);
           }
       }
     },
@@ -208,6 +214,7 @@ const buildGraphUi = function(data, eventHandler) {
   return {
     selectVxId: selectVxId,
     selectLinkId: selectLinkId,
-    unselect: unselect
+    unselectVertices: unselectVertices,
+    unselectLinks: unselectLinks
   };
 }
