@@ -241,7 +241,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
        *
        * @param {graph data} data
        */
-      static getPhysicalSize = function(data) {
+      static _getPhysicalSize = function(data) {
         const values = Object.values(data.vertex);
         console.log(values);
         const min3 = new BABYLON.Vector3(values[0].x, values[0].y, -values[0].z);
@@ -252,7 +252,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         });
 
         const dist = BABYLON.Vector3.Distance(min3, max3);
-        console.log('minmax', min3, max3, dist);
 
         return dist;
       };
@@ -266,7 +265,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
        *
        * @param {number} dist
        */
-      static getDiameter(dist) {
+      static _getDiameter(dist) {
         dist = Math.max(0, dist-10)
         dist *= 1.75/126;
         dist += 0.25;
@@ -306,8 +305,8 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       }
 
       constructor(scene) {
-        const physicalSize = LineHighlighter.getPhysicalSize(data);
-        this.diameter = LineHighlighter.getDiameter(physicalSize);
+        const physicalSize = LineHighlighter._getPhysicalSize(data);
+        this.diameter = LineHighlighter._getDiameter(physicalSize);
 
         this.create(scene);
 
@@ -327,7 +326,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         const arrowLen = a => link.directions.includes(a) ? ARROWHEAD_LENGTH : 0;
 
         const color = new BABYLON.Color4(...link.color);
-        console.log('LINK', link, color);
 
         // Calculate the height and position of the highlight cylinder.
         // Start with the positions of the src and dst nodes.
@@ -359,7 +357,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
         const dstPoso = dstPos.subtract(dsto);
 
         const height = BABYLON.Vector3.Distance(srcPoso, dstPoso);
-        console.log('HEIGHT', height);
 
         this.create(height, color, scene);
 
@@ -399,13 +396,11 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     const lineHighlight = new LineHighlighter(scene);
 
     const selectVxId = id => {
-      console.log(`vis select vx id ${id}`);
       const v = data.vertex[id];
       highlight.show(new BABYLON.Vector3(v.x, v.y, -v.z), v.nradius*2.0, scene);
     };
 
     const selectLinkId = id => {
-      console.log(`vis select link id ${id}`);
       const link = data.transaction[id];
       lineHighlight.show(link);
     };
@@ -559,8 +554,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     resetCamera();
 
     const NVX = Object.keys(data.vertex).length;
-    console.log('Vertices: %s', NVX);
-    console.log('Atlas   : %s', data.sprite_atlas)
 
     const createBlazes = function (vertices) {
       // Set up blazes (if there are any).
@@ -627,8 +620,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
       spriteMgr.fogEnabled = false;
       spriteMgr.isPickable = true;
-      console.log('spriteMgr:', spriteMgr);
-      console.log('texture: ', spriteMgr.texture.getBaseSize());
+      console.log('Texture base size: ', spriteMgr.texture.getBaseSize());
 
       const w = data.sprite_atlas.width;
       const h = data.sprite_atlas.height;
@@ -736,10 +728,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
           const pickResult = scene.pick(event.pointerX, event.pointerY, pm => pm.id==liness.id);
           if(pickResult.hit) {
             const linkIx = pickResult.faceId;
-            eventHandler('link', linkIx);//, transaction[pickResult.faceId])
-
-            const s = ''+transaction[linkIx].count
-            console.log(`picked ${s}`);
+            eventHandler('link', linkIx);
           }
         }));
 
@@ -844,7 +833,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
   // scene.freezeActiveMeshes();
 
   const scene = createScene();
-  console.log(scene.scene.activeCamera);
 
   // scene.registerBeforeRender(function() {
   //   scene.activeCamera.alpha += 0.01;

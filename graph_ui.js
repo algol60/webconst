@@ -72,14 +72,11 @@ const buildGraphUi = function(data, eventHandler) {
           // { type: 'button', id: 'item7', text: 'Button', icon: 'fas fa-star' }
       ],
       onClick: function (event) {
-          console.log('Target: '+ event.target, event);
           switch(event.target) {
             case 'reset':
-              // unselect();
               eventHandler('graph', 'reset');
               break;
             case 'unselect':
-              // unselect();
               eventHandler('graph', 'unselect');
               break;
             case 'screenshot':
@@ -94,24 +91,22 @@ const buildGraphUi = function(data, eventHandler) {
       name: 'sidebar',
       nodes: [],
       onClick: function(event) {
-        console.log(event);
-        // selectVxId(event.target);
         eventHandler('v', event.target);
       }
     },
     grid_nodes: {
       name: 'grid_nodes',
       onClick: function(event) {
-        console.log('node', event);
-        // selectId(event.recid);
         eventHandler('v', event.recid);
       }
     },
     grid_links: {
       name: 'grid_links',
       onClick: function(event) {
-        console.log('link', event);
-        eventHandler('t', event.recid);
+        // Convert recid 'nn#bb' to a link id nn.
+        //
+        const linkId = parseInt(event.recid.match('^\\d+'));
+        eventHandler('link', linkId);
       }
     }
   };
@@ -156,8 +151,6 @@ const buildGraphUi = function(data, eventHandler) {
   if(data.hasOwnProperty('ui_attrs')) {
       for(const attr of data.ui_attrs) {
         const cap = '<img src="icons/nodes.png">' + attr;
-
-        console.log(`attr: ${cap}`);
         w2ui['grid_nodes'].addColumn({field:attr.replace(/\./g, '_'), text:cap});
       }
 
@@ -204,7 +197,6 @@ const buildGraphUi = function(data, eventHandler) {
         for(const [field, value] of zip(link_field, values)) {
           row[field] = value;
         }
-        console.log(row);
         rows.push(row);
       });
     });

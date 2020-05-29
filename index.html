@@ -64,7 +64,7 @@
           return;
         }
 
-        console.log('@@ Event:', event, id);
+        console.log('Event handler:', event, id);
         switch(event) {
           case 'graph': // graph event
             switch(id) {
@@ -96,6 +96,7 @@
             ui.unselectLinks();
             ui.selectLinkId(id);
             vis.selectLinkId(id);
+            break;
           default:
             console.log(`Unknown event ${event}`);
         }
