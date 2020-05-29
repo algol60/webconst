@@ -4,7 +4,11 @@
  * Take a JSON document representing a Constellation graph and visualise
  * it using babylon.js (www.babylonjs.com).
  *
+ * TODO reverse all the z coordinates up front so I don't have to keep doing it in random code.
+ *
  * @param {JSON} data A JSON document representing a Constellation graph.
+ * @param {function} eventHandler A handler for any events that need handling
+ * @param {string} resourceDir The directory where the resource subdirectories can be found.
  */
 const createGraph = function(data, eventHandler, resourceDir='.') {
   const node_spritesVertexShader = `
@@ -20,7 +24,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     varying vec2 vUV;
     varying vec2 bgUV;
     varying vec4 vColor;
-    #include<fogVertexDeclaration>
+    // #include<fogVertexDeclaration>
     void main(void) {
       vec3 viewPos = (view*vec4(position.xyz, 1.0)).xyz;
       vec2 cornerPos;
@@ -57,9 +61,9 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       bgUV.x = bgPlace.x + uvSize.x*uvOffset.x;
       bgUV.y = bgPlace.y + uvSize.y*uvOffset.y;
 
-      #ifdef FOG
-      vFogDistance = viewPos;
-      #endif
+      // #ifdef FOG
+      // vFogDistance = viewPos;
+      // #endif
     }
     `;
 
@@ -71,7 +75,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
     varying vec2 bgUV;
     uniform sampler2D diffuseSampler;
 
-    #include<fogFragmentDeclaration>
+    // #include<fogFragmentDeclaration>
 
     void main(void) {
       vec4 color = texture2D(diffuseSampler, vUV);
@@ -87,7 +91,7 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
       }
       // color *= vColor;
 
-      #include<fogFragment>
+      // #include<fogFragment>
 
       gl_FragColor=color;
     }
@@ -620,7 +624,6 @@ const createGraph = function(data, eventHandler, resourceDir='.') {
 
       spriteMgr.fogEnabled = false;
       spriteMgr.isPickable = true;
-      console.log('Texture base size: ', spriteMgr.texture.getBaseSize());
 
       const w = data.sprite_atlas.width;
       const h = data.sprite_atlas.height;
